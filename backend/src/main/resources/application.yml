@@ -4,6 +4,23 @@ server:
 spring:
   application:
     name: cadence-backend
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/cadence}
+    username: ${POSTGRES_USER:cadence}
+    password: ${POSTGRES_PASSWORD:cadence_secret}
+    driver-class-name: org.postgresql.Driver
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    open-in-view: false
+    properties:
+      hibernate:
+        default_schema: public
+        jdbc:
+          time_zone: Asia/Kolkata
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
 
 cadence:
   api-key: ${CADENCE_API_KEY:cadence-dev-secret-key-change-me}

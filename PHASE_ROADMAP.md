@@ -9,14 +9,15 @@
   - [x] Establish documentation quartet: `CODING_GUIDELINES.md`, `AI_CONTEXT.md`, `PHASE_ROADMAP.md`, `README.md`
   - [x] Automated tests for `/ai-service` (5/5 passed) and `/backend` (5/5 passed)
 
-- [ ] **Phase 1: Spring Boot System of Record, Auth, Timezone Anchoring & FSRS-4.5 Engine**
-  - [ ] Flyway Migration `V1__init_cadence_schema.sql` (PostgreSQL 16 `TIMESTAMPTZ`, users, cards, constraints, blocks, proposals, stats)
-  - [ ] `ApiKeyAuthFilter` protecting `/api/v1/**` with `X-Cadence-Api-Key` / Bearer token
-  - [ ] Reference-verified Java FSRS-4.5 implementation (17 parameters $w_0..w_{16}$, power-law forgetting curve, test vectors)
-  - [ ] Duration Bias Calibrator (`alpha = 0.3` EMA multiplier per topic tag)
-  - [ ] Burnout Guard (7-day rolling completion rate, recovery mode, flex-time credit banking)
-  - [ ] 30-Day Starter Curriculum Seeder (`POST /api/v1/demo/seed`)
-  - [ ] Phone-ready read/log endpoints (`/api/v1/schedule/week`, `/api/v1/cards/due`, `/api/v1/blocks/{id}/complete`, `/api/v1/cards/{id}/review`)
+- [x] **Phase 1: Spring Boot System of Record, Auth, Timezone Anchoring & FSRS-4.5 Engine**
+  - [x] Flyway Migration `V1__init_cadence_schema.sql` (PostgreSQL 16 `TIMESTAMPTZ`, users, cards, constraints, blocks, proposals, stats)
+  - [x] `ApiKeyAuthFilter` protecting `/api/v1/**` with `X-Cadence-Api-Key` / Bearer token
+  - [x] Reference-verified Java FSRS-4.5 implementation (17 parameters $w_0..w_{16}$, power-law forgetting curve, test vectors from `open-spaced-repetition/py-fsrs` v2.0.0)
+  - [x] Duration Bias Calibrator (`alpha = 0.3` EMA multiplier per topic tag clamped to `[0.7, 2.5]`)
+  - [x] Burnout Guard (7-day rolling completion rate, recovery mode, flex-time credit banking)
+  - [x] 30-Day Starter Curriculum Seeder (`POST /api/v1/demo/seed`)
+  - [x] Phone-ready read/log endpoints (`/api/v1/schedule/week`, `/api/v1/cards/due`, `/api/v1/blocks/{id}/complete`, `/api/v1/cards/{id}/review`)
+  - [x] Automated tests for `/backend` (16/16 passed)
 
 - [ ] **Phase 2A: Python AI Intent Compiler & Secret Scrubber**
   - [ ] `SecretScrubber` (regex + Shannon entropy redacting API keys, JWTs, env vars before LLM calls)
