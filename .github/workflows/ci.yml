@@ -1,0 +1,82 @@
+name: Cadence CI / Automated Verification Pipeline
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  backend-test:
+    name: Backend Java 21 Tests (Spring Boot & FSRS-4.5)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Execute Maven tests
+        run: ./mvnw clean test --no-transfer-progress
+
+  ai-service-test:
+    name: AI Service Python 3.12 Tests (CP-SAT & Intent Evals)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ai-service
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Run Pytest suite
+        env:
+          LLM_PROVIDER_MODE: MOCK
+        run: pytest tests/ -v
+
+      - name: Run Full Evaluation Benchmark Scorecard
+        env:
+          LLM_PROVIDER_MODE: MOCK
+        run: python evals/run_full_benchmark.py
+
+  web-build:
+    name: Web Frontend Next.js 15 Build & Lint
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Next.js application
+        run: npm run build

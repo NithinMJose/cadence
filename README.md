@@ -16,7 +16,7 @@ Cadence is a phone-first adaptive learning coach and constraint scheduler. It co
 | **Phase 3B: Android App (Part 2)** | **VERIFIED COMPLETE** | On-device Fast-Path Router (<10ms offline actions), Commute Flashcards screen (FSRS rating bar & rubric), Natural Language Replan screen (CP-SAT schedule diff & 1-tap confirmation), verified on Android 16 hardware. |
 | **Phase 4: GitHub Pipeline & Feynman Grader** | **VERIFIED COMPLETE** | GitHub REST API commit poller, secret-scrubbed diff autopsy inside `<untrusted_code_diff>` tags, FSRS flashcard synthesis, Session Warm-Up Brief attachment, 3-minute Emergency Floor micro-quiz, and Feynman Voice Dojo grading with FSRS update. |
 | **Phase 5: Next.js Web Control Center** | **VERIFIED COMPLETE** | Next.js 15 App Router, Tailwind CSS, Lucide icons, 4 desktop views (Weekly Schedule Grid, Natural Language Replan Console, GitHub Diff Autopsy & Feynman Flashcard Dojo, Duration Bias & Telemetry Dashboard with Flight Recorder), and 1-click Recruiter Demo Persona. |
-| **Phase 6: Evals, CI & QLoRA** | Next Up | 60+ golden eval dataset, CI workflow, and RTX 5060 Blackwell QLoRA distillation check. |
+| **Phase 6: Evals, CI & QLoRA** | **VERIFIED COMPLETE** | 85-case human-verified golden eval dataset (`golden_intents.jsonl` + `golden_feynman_rubrics.jsonl`), CLI verification tool (`verify_eval_cases.py`), full benchmark scorecard runner (`EVALS.md`), system architecture docs (`ARCHITECTURE.md`), automated CI pipeline (`.github/workflows/ci.yml`), and standalone RTX 5060 Blackwell QLoRA distillation script (`train_qlora.py`). |
 
 ---
 
@@ -111,3 +111,24 @@ Returns:
 - Deterministic AST with symbolic anchors (`target_weekday: "FRIDAY"`, `window: "EVENING"`).
 - Deterministically resolved ISO-8601 windows (`2026-11-20T17:00:00+05:30` to `2026-11-20T21:00:00+05:30`).
 - `_debug_trace` flight recorder with `secrets_redacted_count`, `validation_retries_used`, and `llm_latency_ms`.
+
+---
+
+## Evaluation Benchmark & QLoRA Distillation (`EVALS.md`)
+
+Cadence includes an 85-case human-verified evaluation suite across intent compilation, combinatorial scheduling, and spoken Feynman rubrics.
+
+### Run Evaluation CLI:
+```bash
+# Inspect summary of test cases:
+python ai-service/evals/verify_eval_cases.py --summary
+
+# Run full evaluation benchmark:
+python ai-service/evals/run_full_benchmark.py
+```
+
+### Dry-Run QLoRA Distillation Pipeline:
+```bash
+python ai-service/notebooks/train_qlora.py --dry-run
+```
+*(Pre-flight checks NVIDIA RTX 5060 Blackwell `sm_120` CUDA capability, 8GB VRAM headroom, and formats ChatML instruction datasets for 4-bit BitsAndBytes QLoRA fine-tuning).*

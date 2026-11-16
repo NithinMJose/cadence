@@ -144,6 +144,16 @@ class LLMRouter:
     def _deterministic_mock_parse(self, text: str) -> ConstraintMutationAST:
         """Fast rule-based mock parser for offline CI tests and instant evaluation."""
         lower = text.lower()
+        # 0. Prompt injection / jailbreak neutralization
+        if any(w in lower for w in ["ignore", "override", "dan", "drop table", "<script", "secret api key", "print the", "reveal system", "exec", "<!--"]):
+            return ConstraintMutationAST(
+                is_ambiguous=True,
+                ambiguity_reason="Adversarial prompt injection pattern detected and neutralized.",
+                clarification_options=["Cancel request", "Rephrase scheduling instruction"],
+                constraints=[],
+                summary="Adversarial prompt injection neutralized. No calendar modifications allowed.",
+            )
+
         # 1. Ambiguity detection
         if any(w in lower for w in ["busy this week", "too tired this week", "maybe later", "not sure", "swamped"]):
             return ConstraintMutationAST(

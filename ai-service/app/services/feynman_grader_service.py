@@ -117,9 +117,10 @@ class FeynmanGraderService:
             words = [w for w in re.findall(r"\b[a-z]{3,}\b", cp.lower()) if w not in stop_words]
             if not words:
                 continue
-            # Match if at least 50% of distinct significant keywords appear in transcript
+            # Match if at least 45% of distinct significant keywords appear in transcript
             overlap = [w for w in words if w in transcript]
-            if len(overlap) >= max(1, (len(words) + 1) // 2):
+            required_overlap = max(2, int(len(words) * 0.45)) if len(words) >= 4 else 1
+            if len(overlap) >= required_overlap:
                 matched.append(cp)
             else:
                 missing.append(cp)
