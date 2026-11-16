@@ -1,0 +1,16 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: cadence-backend
+
+cadence:
+  api-key: ${CADENCE_API_KEY:cadence-dev-secret-key-change-me}
+  timezone: ${DEFAULT_USER_TIMEZONE:Asia/Kolkata}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

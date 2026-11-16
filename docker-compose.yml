@@ -1,0 +1,121 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: cadence-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-cadence}
+      POSTGRES_USER: ${POSTGRES_USER:-cadence}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cadence_secret}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cadence} -d ${POSTGRES_DB:-cadence}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cadence-network
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: cadence-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_models:/root/.ollama
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "ollama list || exit 1"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 5s
+    networks:
+      - cadence-network
+
+  ollama-pull:
+    image: ollama/ollama:latest
+    container_name: cadence-ollama-pull
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5:7b-instruct-q4_K_M}
+    volumes:
+      - ollama_models:/root/.ollama
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - |
+        echo "Checking if model $${OLLAMA_MODEL} is already present in volume..."
+        if ollama list | grep -q "$${OLLAMA_MODEL}"; then
+          echo "Model $${OLLAMA_MODEL} already exists. Skipping pull."
+        else
+          echo "Pulling model $${OLLAMA_MODEL}..."
+          ollama pull "$${OLLAMA_MODEL}"
+          echo "Model $${OLLAMA_MODEL} pull complete."
+        fi
+    depends_on:
+      ollama:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - cadence-network
+
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    container_name: cadence-ai-service
+    restart: unless-stopped
+    ports:
+      - "${AI_SERVICE_PORT:-8000}:8000"
+    environment:
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-http://ollama:11434}
+      - OLLAMA_MODEL=${OLLAMA_MODEL:-qwen2.5:7b-instruct-q4_K_M}
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+      - GEMINI_MODEL=${GEMINI_MODEL:-gemini-2.5-flash}
+      - LLM_PROVIDER_MODE=${LLM_PROVIDER_MODE:-AUTO}
+      - ALLOW_CLOUD_FALLBACK=${ALLOW_CLOUD_FALLBACK:-false}
+      - CADENCE_API_KEY=${CADENCE_API_KEY:-cadence-dev-secret-key-change-me}
+      - DEFAULT_USER_TIMEZONE=${DEFAULT_USER_TIMEZONE:-Asia/Kolkata}
+    depends_on:
+      ollama:
+        condition: service_healthy
+    networks:
+      - cadence-network
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: cadence-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-8080}:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/cadence}
+      - POSTGRES_USER=${POSTGRES_USER:-cadence}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-cadence_secret}
+      - CADENCE_API_KEY=${CADENCE_API_KEY:-cadence-dev-secret-key-change-me}
+      - DEFAULT_USER_TIMEZONE=${DEFAULT_USER_TIMEZONE:-Asia/Kolkata}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - cadence-network
+
+volumes:
+  postgres_data:
+  ollama_models:
+
+networks:
+  cadence-network:
+    driver: bridge

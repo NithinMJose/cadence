@@ -1,0 +1,30 @@
+# Compiled / Build outputs
+**/build/
+**/target/
+**/.gradle/
+**/node_modules/
+**/.next/
+**/__pycache__/
+**/.venv/
+*.pyc
+
+# Local environment and secrets
+.env
+.env.local
+*.local
+
+# IDEs & System
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Test & Coverage artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# NOTE: Do NOT ignore lockfiles (package-lock.json, uv.lock, gradle.lockfile).
+# Lockfiles are committed to ensure reproducible builds across machines.
