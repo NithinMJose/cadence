@@ -19,13 +19,13 @@
   - [x] Phone-ready read/log endpoints (`/api/v1/schedule/week`, `/api/v1/cards/due`, `/api/v1/blocks/{id}/complete`, `/api/v1/cards/{id}/review`)
   - [x] Automated tests for `/backend` (16/16 passed)
 
-- [ ] **Phase 2A: Python AI Intent Compiler & Secret Scrubber**
-  - [ ] `SecretScrubber` (regex + Shannon entropy redacting API keys, JWTs, env vars before LLM calls)
-  - [ ] `LLMRouter` with 3-part prompt sandwich (Docker Ollama default, Gemini Flash fallback, mock for offline tests)
-  - [ ] `ConstraintMutationAST` Pydantic v2 schema with Self-Healing Validator Loop (max 2 retries)
-  - [ ] `SymbolicDateResolver` resolving symbolic anchors to exact `Asia/Kolkata` ISO-8601 timestamps
-  - [ ] Ambiguity Elicitation returning one-tap clarification options for vague user prompts
-  - [ ] `POST /api/v1/ai/parse-intent` endpoint with 15-case smoke evaluation
+- [x] **Phase 2A: Python AI Intent Compiler & Secret Scrubber**
+  - [x] `SecretScrubber` (regex + Shannon entropy redacting API keys, JWTs, env vars before LLM calls)
+  - [x] `LLMRouter` with 3-part prompt sandwich (Docker Ollama default, Gemini Flash fallback, mock for offline tests)
+  - [x] `ConstraintMutationAST` Pydantic v2 schema with Self-Healing Validator Loop (max 2 retries)
+  - [x] `SymbolicDateResolver` resolving symbolic anchors to exact `Asia/Kolkata` ISO-8601 timestamps
+  - [x] Ambiguity Elicitation returning one-tap clarification options for vague user prompts
+  - [x] `POST /api/v1/ai/parse-intent` endpoint with 15-case smoke evaluation (17/17 tests passed in `/ai-service`)
 
 - [ ] **Phase 2B: OR-Tools CP-SAT Scheduler, Schedule Diff & Spring Boot Replan Wiring**
   - [ ] Google OR-Tools CP-SAT model over 7-day horizon with 15-minute resolution

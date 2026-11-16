@@ -1,5 +1,13 @@
+import os
 import pytest
 from httpx import ASGITransport, AsyncClient
+
+# Enforce deterministic mock mode for offline CI tests
+os.environ["LLM_PROVIDER_MODE"] = "MOCK"
+
+from app.config import get_settings
+get_settings.cache_clear()
+
 from app.main import app
 
 
