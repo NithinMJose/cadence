@@ -137,6 +137,9 @@ fun CadenceMainApp(repository: CadenceRepository) {
                         actionFeedback = "⚡ ${res.message}"
                     }
                 },
+                onFeynmanGrade = { cardId, text ->
+                    repository.gradeFeynmanExplanation(cardId, text)
+                },
                 onRefresh = {
                     scope.launch { repository.syncWithBackend() }
                 },

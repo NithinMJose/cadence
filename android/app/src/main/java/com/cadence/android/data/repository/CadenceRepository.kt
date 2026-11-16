@@ -153,6 +153,21 @@ class CadenceRepository(private val context: Context) {
         }
     }
 
+    suspend fun gradeFeynmanExplanation(cardId: String, transcript: String): Result<FeynmanGradeResponseDto> = withContext(Dispatchers.IO) {
+        try {
+            val resp = api.gradeFeynmanExplanation(cardId, FeynmanGradeRequestDto(transcript))
+            if (resp.isSuccessful && resp.body() != null) {
+                val body = resp.body()!!
+                topicCardDao.markLocallyGraded(cardId, true)
+                Result.success(body)
+            } else {
+                Result.failure(Exception("Feynman error ${resp.code()}: ${resp.message()}"))
+            }
+        } catch (ex: Exception) {
+            Result.failure(ex)
+        }
+    }
+
     suspend fun flushPendingCommands() {
         val pending = pendingDao.getAllPending()
         for (cmd in pending) {

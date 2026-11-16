@@ -62,4 +62,52 @@ public class AiServiceClient {
             );
         }
     }
+
+    /**
+     * Analyzes git commit diff to generate FSRS flashcards and warm-up briefs.
+     */
+    public JsonNode callCommitAutopsy(Map<String, Object> payload, String traceId) {
+        try {
+            log.info("Dispatching commit autopsy to AI Service with trace_id={}", traceId);
+            return restClient.post()
+                    .uri("/api/v1/ai/commit-autopsy")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("X-Trace-Id", traceId != null ? traceId : "trace-autopsy")
+                    .body(payload)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (Exception ex) {
+            log.error("Commit autopsy failed for trace_id={}: {}", traceId, ex.getMessage());
+            throw new CadenceException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "AI_SERVICE_UNAVAILABLE",
+                    "Failed to communicate with AI Service commit autopsy: " + ex.getMessage(),
+                    "Verify the Python ai-service is running on port 8000."
+            );
+        }
+    }
+
+    /**
+     * Evaluates 60-second Feynman concept explanation transcript against 4 rubric checkpoints.
+     */
+    public JsonNode callFeynmanGrade(Map<String, Object> payload, String traceId) {
+        try {
+            log.info("Dispatching Feynman grade to AI Service with trace_id={}", traceId);
+            return restClient.post()
+                    .uri("/api/v1/ai/feynman-grade")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .header("X-Trace-Id", traceId != null ? traceId : "trace-feynman")
+                    .body(payload)
+                    .retrieve()
+                    .body(JsonNode.class);
+        } catch (Exception ex) {
+            log.error("Feynman grading failed for trace_id={}: {}", traceId, ex.getMessage());
+            throw new CadenceException(
+                    HttpStatus.SERVICE_UNAVAILABLE,
+                    "AI_SERVICE_UNAVAILABLE",
+                    "Failed to communicate with AI Service Feynman grader: " + ex.getMessage(),
+                    "Verify the Python ai-service is running on port 8000."
+            );
+        }
+    }
 }

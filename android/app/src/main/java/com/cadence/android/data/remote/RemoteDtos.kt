@@ -115,3 +115,24 @@ data class ReplanConfirmResponseDto(
     @SerializedName("status") val status: String,
     @SerializedName("updated_blocks_count") val updatedBlocksCount: Int
 )
+
+data class FeynmanGradeRequestDto(
+    @SerializedName("transcript") val transcript: String
+)
+
+data class FeynmanGradeResponseDto(
+    @SerializedName("cardId") val cardId: String,
+    @SerializedName("cardTitle") val cardTitle: String,
+    @SerializedName("fsrsGrade") val fsrsGrade: Int,
+    @SerializedName("matchedCheckpoints") val matchedCheckpoints: List<String>,
+    @SerializedName("missingCheckpoints") val missingCheckpoints: List<String>,
+    @SerializedName("feedback") val feedback: String,
+    @SerializedName("stability") val stability: Double,
+    @SerializedName("difficulty") val difficulty: Double,
+    @SerializedName("scheduledDays") val scheduledDays: Int,
+    @SerializedName("reps") val reps: Int,
+    @SerializedName("lapses") val lapses: Int,
+    @SerializedName("state") val state: String,
+    @SerializedName("nextReviewAt") val nextReviewAt: String?,
+    @SerializedName("traceId") val traceId: String?
+)

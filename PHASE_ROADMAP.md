@@ -52,11 +52,11 @@
   - [x] Commute Flashcards Screen with swipeable/flippable FSRS-4.5 cards and offline grade queue
   - [x] Verified on physical Android 16 hardware (`00091349R001536`) with all 4 screens and end-to-end sync
 
-- [ ] **Phase 4: GitHub Commit Polling, Diff-to-Flashcard Pipeline & Feynman Voice Grader (COMPLETE MVP!)**
-  - [ ] GitHub Commit Poller via REST API + manual diff endpoint
-  - [ ] Secret-scrubbed diff autopsy inside `<untrusted_code_diff>` tags generating cards and warm-up briefs
-  - [ ] Feynman Voice Grader evaluating spoken transcripts against 4-point rubrics
-  - [ ] Android Feynman voice review interface with 60-second explanation capture
+- [x] **Phase 4: GitHub Commit Polling, Diff-to-Flashcard Pipeline & Feynman Voice Grader (COMPLETE MVP!)**
+  - [x] GitHub Commit Poller via REST API + manual diff endpoint
+  - [x] Secret-scrubbed diff autopsy inside `<untrusted_code_diff>` tags generating cards and warm-up briefs
+  - [x] Feynman Voice Grader evaluating spoken transcripts against 4-point rubrics
+  - [x] Android Feynman voice review interface with 60-second explanation capture
 
 - [ ] **Phase 5: Next.js 15 Web Control Center, Telemetry Dashboard & Recruiter Sandbox**
   - [ ] Next.js 15 App Router + Tailwind CSS + Lucide icons

@@ -27,6 +27,10 @@ cadence:
   timezone: ${DEFAULT_USER_TIMEZONE:Asia/Kolkata}
   ai-service:
     url: ${AI_SERVICE_URL:http://localhost:8000}
+  github:
+    owner: ${GITHUB_OWNER:NithinMJose}
+    repo: ${GITHUB_REPO:cadence}
+    token: ${GITHUB_TOKEN:}
 
 management:
   endpoints:

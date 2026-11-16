@@ -1,6 +1,5 @@
 package com.cadence.android.ui.screens
 
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material.icons.filled.Warning
@@ -22,18 +22,26 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.cadence.android.data.local.entity.LocalTopicCard
+import com.cadence.android.data.remote.FeynmanGradeResponseDto
+import com.cadence.android.ui.components.FeynmanReviewDialog
+import kotlinx.coroutines.launch
 import org.json.JSONObject
 
 @Composable
 fun FlashcardsScreen(
     dueCards: List<LocalTopicCard>,
     onGradeCard: (cardId: String, grade: Int) -> Unit,
+    onFeynmanGrade: suspend (cardId: String, transcript: String) -> Result<FeynmanGradeResponseDto>,
     onRefresh: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     var currentIndex by remember { mutableIntStateOf(0) }
     var isRevealed by remember { mutableStateOf(false) }
     var isFloorMode by remember { mutableStateOf(false) }
+    var showFeynmanDialog by remember { mutableStateOf(false) }
+    var isFeynmanGrading by remember { mutableStateOf(false) }
+    var feynmanResult by remember { mutableStateOf<FeynmanGradeResponseDto?>(null) }
+    val scope = rememberCoroutineScope()
 
     LaunchedEffect(dueCards.size) {
         if (currentIndex >= dueCards.size) {
@@ -44,7 +52,6 @@ fun FlashcardsScreen(
     }
 
     Column(modifier = modifier.fillMaxSize().padding(16.dp)) {
-        // Header
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
@@ -73,7 +80,7 @@ fun FlashcardsScreen(
                     Text("Zero Cards Due", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.SemiBold)
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        "FSRS-4.5 interval scheduling has placed all your concepts into optimal memory retention.",
+                        "FSRS-4.5 interval scheduling has placed all concepts into optimal memory retention.",
                         textAlign = TextAlign.Center,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(horizontal = 32.dp)
@@ -84,57 +91,33 @@ fun FlashcardsScreen(
             val card = dueCards.getOrNull(currentIndex) ?: return
             val checkpoints = remember(card.rubricJson) { parseCheckpoints(card.rubricJson) }
 
-            // Flashcard container
             ElevatedCard(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
-                    .clickable { isRevealed = !isRevealed }
-                    .animateContentSize(),
+                modifier = Modifier.fillMaxWidth().weight(1f).clickable { isRevealed = !isRevealed }.animateContentSize(),
                 shape = RoundedCornerShape(16.dp)
             ) {
                 Column(modifier = Modifier.fillMaxSize().padding(20.dp)) {
-                    // Tag & Floor toggle
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                    Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             text = card.topicTag.uppercase(),
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier
-                                .background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(4.dp))
-                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                            modifier = Modifier.background(MaterialTheme.colorScheme.primaryContainer, RoundedCornerShape(4.dp)).padding(horizontal = 8.dp, vertical = 4.dp)
                         )
                         FilterChip(
                             selected = isFloorMode,
                             onClick = { isFloorMode = !isFloorMode },
                             label = { Text("⚡ 3m Floor", fontSize = 11.sp) },
-                            leadingIcon = if (isFloorMode) {
-                                { Icon(Icons.Default.Warning, contentDescription = null, modifier = Modifier.size(14.dp)) }
-                            } else null
+                            leadingIcon = if (isFloorMode) { { Icon(Icons.Default.Warning, contentDescription = null, modifier = Modifier.size(14.dp)) } } else null
                         )
                     }
 
                     Spacer(modifier = Modifier.height(16.dp))
-
-                    Text(
-                        text = card.title,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-
+                    Text(text = card.title, style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold)
                     Spacer(modifier = Modifier.height(12.dp))
 
                     if (isFloorMode) {
-                        Surface(
-                            color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f),
-                            shape = RoundedCornerShape(8.dp),
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
-                        ) {
+                        Surface(color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.4f), shape = RoundedCornerShape(8.dp), modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(12.dp)) {
                                 Text("Emergency Floor Micro-Quiz:", fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelMedium)
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -145,7 +128,6 @@ fun FlashcardsScreen(
 
                     Spacer(modifier = Modifier.height(12.dp))
 
-                    // Front hint or Revealed answer
                     if (!isRevealed) {
                         Box(modifier = Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.Center) {
                             Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -176,33 +158,58 @@ fun FlashcardsScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Feynman Voice Mode Button
+            OutlinedButton(
+                onClick = { feynmanResult = null; showFeynmanDialog = true },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(8.dp)
+            ) {
+                Icon(Icons.Default.Mic, contentDescription = null, modifier = Modifier.size(16.dp))
+                Spacer(modifier = Modifier.width(6.dp))
+                Text("🎙️ Explain Like Feynman (60s Voice Grade)", fontSize = 12.sp)
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
 
             // 4-Button FSRS Rating Bar
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                FsrsButton(label = "Again", sublabel = "1", color = Color(0xFFEF5350), modifier = Modifier.weight(1f)) {
-                    onGradeCard(card.id, 1)
-                    isRevealed = false
-                    isFloorMode = false
+            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                listOf(
+                    Triple("Again", "1", Color(0xFFEF5350)) to 1,
+                    Triple("Hard", "2", Color(0xFFFFA726)) to 2,
+                    Triple("Good", "3", Color(0xFF26A69A)) to 3,
+                    Triple("Easy", "4", Color(0xFF66BB6A)) to 4
+                ).forEach { (meta, grade) ->
+                    FsrsButton(meta.first, meta.second, meta.third, Modifier.weight(1f)) {
+                        onGradeCard(card.id, grade); isRevealed = false; isFloorMode = false
+                    }
                 }
-                FsrsButton(label = "Hard", sublabel = "2", color = Color(0xFFFFA726), modifier = Modifier.weight(1f)) {
-                    onGradeCard(card.id, 2)
-                    isRevealed = false
-                    isFloorMode = false
-                }
-                FsrsButton(label = "Good", sublabel = "3", color = Color(0xFF26A69A), modifier = Modifier.weight(1f)) {
-                    onGradeCard(card.id, 3)
-                    isRevealed = false
-                    isFloorMode = false
-                }
-                FsrsButton(label = "Easy", sublabel = "4", color = Color(0xFF66BB6A), modifier = Modifier.weight(1f)) {
-                    onGradeCard(card.id, 4)
-                    isRevealed = false
-                    isFloorMode = false
-                }
+            }
+
+            if (showFeynmanDialog) {
+                FeynmanReviewDialog(
+                    card = card,
+                    checkpoints = checkpoints,
+                    isGrading = isFeynmanGrading,
+                    gradeResult = feynmanResult,
+                    onDismiss = {
+                        showFeynmanDialog = false
+                        if (feynmanResult != null) {
+                            isRevealed = false
+                            isFloorMode = false
+                            currentIndex = if (currentIndex + 1 < dueCards.size) currentIndex + 1 else 0
+                        }
+                    },
+                    onSubmit = { transcript ->
+                        scope.launch {
+                            isFeynmanGrading = true
+                            val res = onFeynmanGrade(card.id, transcript)
+                            isFeynmanGrading = false
+                            feynmanResult = res.getOrNull()
+                        }
+                    }
+                )
             }
         }
     }
@@ -224,15 +231,11 @@ fun FsrsButton(label: String, sublabel: String, color: Color, modifier: Modifier
     }
 }
 
-private fun parseCheckpoints(rubricJson: String?): List<String> {
-    if (rubricJson.isNullOrBlank()) return emptyList()
+private fun parseCheckpoints(json: String?): List<String> {
+    if (json.isNullOrBlank()) return emptyList()
     return try {
-        val obj = JSONObject(rubricJson)
-        val arr = obj.optJSONArray("checkpoints") ?: return emptyList()
-        val list = mutableListOf<String>()
-        for (i in 0 until arr.length()) list.add(arr.getString(i))
-        list
-    } catch (_: Exception) {
-        emptyList()
-    }
+        val arr = if (json.trim().startsWith("[")) org.json.JSONArray(json)
+        else JSONObject(json).optJSONArray("checkpoints") ?: return emptyList()
+        List(arr.length()) { arr.getString(it) }
+    } catch (_: Exception) { emptyList() }
 }

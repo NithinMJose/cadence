@@ -1,13 +1,13 @@
 # Cadence AI Technical Map & Architecture Context
 
-## Current Phase Status: PHASE 3B COMPLETE (Verified on Hardware)
-- **Active Phase:** Phase 3B (Fast-Path Router, Voice/Natural Language Replan & Commute Flashcards)
-- **Next Phase:** Phase 4 (GitHub Commit Polling, Diff-to-Flashcard Pipeline & Feynman Voice Grader)
+## Current Phase Status: PHASE 4 COMPLETE (Phone-First MVP 100% Usable)
+- **Active Phase:** Phase 4 (GitHub Commit Polling, Diff-to-Flashcard Pipeline & Feynman Voice Grader)
+- **Next Phase:** Phase 5 (Next.js 15 Web Control Center, Telemetry Dashboard & Recruiter Sandbox)
 - **Android Target:** Android 16 (API 36), compileSdk 36, minSdk 26. Jetpack Compose Material 3, Room SQLite, WorkManager, AlarmManager, Retrofit.
 - **Autonomous Offline Architecture:** 100% offline schedule execution via `CachedWeekSnapshotEntity` + exact alarms (`AlarmManager.setExactAndAllowWhileIdle`) + `BootCompletedReceiver` + offline outbox queue (`PendingCommandEntity`).
 - **On-Device Fast-Path Router:** Executes `done`, `snooze 15m/30m`, and `emergency floor` directly in local Room SQLite in <10ms with visual latency telemetry.
-- **Commute Flashcards:** Swipeable/flippable FSRS-4.5 cards with 4-button rating bar, rubric checkpoints, and optimistic local grading.
-- **Visual Replan:** Dispatches natural language voice/text constraints, renders Git-style before/after schedule diffs with causal reason tags, capacity tradeoff cards, and 1-tap confirmation.
+- **Commute Flashcards & Feynman Mode:** Swipeable/flippable FSRS-4.5 cards with 4-button rating bar, rubric checkpoints, and Feynman Voice Dojo grading explanations against rubrics with LLM feedback.
+- **Commit Diff Autopsy:** Analyzes secret-scrubbed git diffs, synthesizes FSRS cards, attaches 3-bullet Session Warm-Up Briefs to deep work blocks, and generates 3-minute Emergency Floor micro-quizzes.
 
 ---
 
@@ -70,3 +70,8 @@ cadence/
 | `POST` | `/api/v1/schedule/replan/propose` | `backend:8080` | Yes | Phase 1 replan: returns diff, tradeoff cards, PENDING proposal |
 | `POST` | `/api/v1/schedule/replan/{id}/confirm`| `backend:8080` | Yes | Phase 2A replan: commits proposed changes to time_blocks atomically |
 | `POST` | `/api/v1/schedule/replan/{id}/reject` | `backend:8080` | Yes | Phase 2B replan: discards proposed changes |
+| `POST` | `/api/v1/ai/commit-autopsy` | `ai-service:8000` | No | Git diff autopsy -> flashcards, warmup briefs, micro-quizzes |
+| `POST` | `/api/v1/ai/feynman-grade` | `ai-service:8000` | No | Spoken transcript -> FSRS grade (1..4) + rubric feedback |
+| `POST` | `/api/v1/cards/{id}/feynman-grade` | `backend:8080` | Yes | Evaluates explanation with AI and updates card FSRS state |
+| `POST` | `/api/v1/integrations/github/sync-latest` | `backend:8080` | Yes | Polls GitHub REST API for latest commit and analyzes diff |
+| `POST` | `/api/v1/integrations/github/analyze-raw-diff` | `backend:8080` | Yes | Analyzes raw git diff string and persists cards/briefs |

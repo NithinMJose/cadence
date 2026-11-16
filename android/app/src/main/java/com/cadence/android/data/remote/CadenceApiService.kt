@@ -23,6 +23,12 @@ interface CadenceApiService {
         @Body request: CardReviewRequestDto
     ): Response<CardReviewResponseDto>
 
+    @POST("/api/v1/cards/{id}/feynman-grade")
+    suspend fun gradeFeynmanExplanation(
+        @Path("id") cardId: String,
+        @Body request: FeynmanGradeRequestDto
+    ): Response<FeynmanGradeResponseDto>
+
     @POST("/api/v1/schedule/replan/propose")
     suspend fun proposeReplan(
         @Body request: ReplanProposeRequestDto
