@@ -36,14 +36,15 @@
   - [x] `POST /api/v1/solver/solve` and `POST /api/v1/ai/replan` in FastAPI (23/23 tests passed in `/ai-service`)
   - [x] Spring Boot Two-Phase Replan workflow (`PROPOSED` -> `CONFIRMED`/`REJECTED`) (18/18 tests passed in `/backend`)
 
-- [ ] **Phase 3A: Phone-First Android App, Part 1 (Offline Snapshot, Exact Alarms, BootReceiver & Today Screen)**
-  - [ ] Kotlin + Jetpack Compose Material 3 + Hilt + Retrofit + Room project
-  - [ ] `CachedWeekSnapshotEntity` for 100% offline schedule and flashcard access
-  - [ ] `PendingCommandEntity` offline outbox synced via `WorkManager`
-  - [ ] Android 12+ Exact Alarm permission handler and battery optimization helper
-  - [ ] `BootCompletedReceiver` restoring exact reminders on reboot without server connection
-  - [ ] Notifications 5 min before blocks with Session Warm-Up Briefs and Emergency Floor switch
-  - [ ] Today & Commute Screen + Settings & Diagnostics Screen
+- [x] **Phase 3A: Phone-First Android App, Part 1 (Offline Snapshot, Exact Alarms, BootReceiver & Today Screen)**
+  - [x] Kotlin + Jetpack Compose Material 3 + Retrofit + Room project targeting Android 16 (API 36)
+  - [x] `CachedWeekSnapshotEntity` for 100% offline schedule and flashcard access
+  - [x] `PendingCommandEntity` offline outbox synced via `WorkManager`
+  - [x] Android 12+ Exact Alarm permission handler and battery optimization helper
+  - [x] `BootCompletedReceiver` restoring exact reminders on reboot without server connection
+  - [x] Notifications 5 min before blocks with Session Warm-Up Briefs and Emergency Floor switch
+  - [x] Today & Commute Screen + Settings & Diagnostics Screen
+  - [x] Debug APK built and installed via ADB directly onto connected Android phone (`00091349R001536`)
 
 - [ ] **Phase 3B: Phone-First Android App, Part 2 (Fast-Path Router, Voice Replan & Flashcards)**
   - [ ] On-device Fast-Path Router (`done`, `snooze 30m`, `emergency floor` in <10ms offline)

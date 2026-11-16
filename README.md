@@ -12,8 +12,8 @@ Cadence is a phone-first adaptive learning coach and constraint scheduler. It co
 | **Phase 1: System of Record & FSRS-4.5** | **VERIFIED COMPLETE** | PostgreSQL schema, Flyway migrations, reference-verified Java FSRS-4.5 (17 weights), duration bias calibrator (EMA $\alpha=0.3$), burnout guard (flex credits banking), 30-day curriculum seeder, and phone-ready read/log endpoints. |
 | **Phase 2A: Intent Compiler & Scrubber** | **VERIFIED COMPLETE** | `SecretScrubber` (Shannon entropy + regex credential redaction), `LLMRouter` (3-part prompt sandwich), `ConstraintMutationAST` with `SelfHealingValidator` (max 2 retries), `SymbolicDateResolver` (`Asia/Kolkata`), ambiguity elicitation, and 15-case smoke evaluation. |
 | **Phase 2B: CP-SAT Solver & Replan** | **VERIFIED COMPLETE** | Google OR-Tools CP-SAT scheduler, Git-style Schedule Diff & Constraint Explanation, Slack-Based Overload Tradeoff Cards, and Spring Boot Two-Phase Replan confirmation (`PROPOSED` -> `CONFIRMED`/`REJECTED`). |
-| **Phase 3A: Android App (Part 1)** | Next Up | Offline snapshot, exact alarm manager, boot receiver, and Today/Commute screen. *(Can run directly after Phase 1!)* |
-| **Phase 3B: Android App (Part 2)** | Queued | On-device fast-path router, voice replan, and commute flashcards screen. |
+| **Phase 3A: Android App (Part 1)** | **VERIFIED COMPLETE** | Kotlin + Compose Material 3, Room SQLite `CachedWeekSnapshotEntity`, offline outbox, exact alarm manager, boot receiver, and APK installed on connected device. |
+| **Phase 3B: Android App (Part 2)** | Next Up | On-device fast-path router (<10ms offline actions), voice replan, and commute flashcards screen. |
 | **Phase 4: GitHub Pipeline & Feynman Grader** | Queued | Commit diff autopsy, FSRS card generator, warm-up briefs, and Feynman voice grader. |
 | **Phase 5: Next.js Web Control Center** | Queued | Desktop control center, side-by-side diff viewer, and telemetry dashboard. |
 | **Phase 6: Evals, CI & QLoRA** | Queued | 60+ golden eval dataset, CI workflow, and RTX 5060 Blackwell QLoRA distillation check. |
@@ -53,6 +53,20 @@ cd backend
 ./mvnw test        # Linux / macOS
 ```
 *(Runs 18 tests validating FSRS-4.5 reference vectors, Duration Bias Calibrator EMA, Burnout Guard flex credits, public /health, API key authentication, and end-to-end curriculum seeding & Two-Phase Replan proposal and confirmation).*
+
+### 3. Android Mobile Client (`/android`):
+```bash
+cd android
+.\gradlew.bat testDebugUnitTest    # Windows
+./gradlew testDebugUnitTest        # Linux / macOS
+```
+*(Runs unit tests validating 5-minute pre-session reminder calculation and Emergency Floor state transitions).*
+
+#### Install APK & Reverse Port for Local Backend:
+```bash
+adb reverse tcp:8080 tcp:8080
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
 
 ---
 

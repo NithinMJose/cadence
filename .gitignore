@@ -12,6 +12,7 @@
 .env
 .env.local
 *.local
+**/local.properties
 
 # IDEs & System
 .idea/

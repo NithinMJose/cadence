@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">Cadence</string>
+    <string name="channel_session_reminders">Session Reminders</string>
+    <string name="channel_session_reminders_desc">5-minute warm-up briefs and emergency floor reminders</string>
+</resources>

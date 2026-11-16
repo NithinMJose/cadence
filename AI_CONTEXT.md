@@ -1,10 +1,11 @@
 # Cadence AI Technical Map & Architecture Context
 
-## Current Phase Status: PHASE 2B COMPLETE (Awaiting User Verification)
-- **Active Phase:** Phase 2B (OR-Tools CP-SAT Scheduler, Schedule Diff & Spring Boot Replan Wiring)
-- **Next Phase:** Phase 3A (Phone-First Android App, Part 1: Offline Snapshot, Exact Alarms, BootReceiver & Today Screen)
-- **CP-SAT Specs:** 7-day horizon, 15-min buckets ($672$ slots), hard non-overlap, sleep protection (23:00-07:00), slack variables ($x_{\text{full}} + x_{\text{floor}} + x_{\text{deferred}} = 1$) preventing infeasibility crashes.
-- **FSRS-4.5 Spec:** 17 parameters ($w_0..w_{16}$), default weights from `open-spaced-repetition/py-fsrs` v2.0.0, power-law forgetting curve $R(t, S) = (1 + F \cdot \frac{t}{S})^C$ with $C = -0.5, F \approx 0.234568$. Runs on Java backend only.
+## Current Phase Status: PHASE 3A COMPLETE (Awaiting User Verification)
+- **Active Phase:** Phase 3A (Phone-First Android App, Part 1: Offline Snapshot, Exact Alarms, BootReceiver & Today Screen)
+- **Next Phase:** Phase 3B (Phone-First Android App, Part 2: Fast-Path Router, Voice Replan & Commute Flashcards)
+- **Android Target:** Android 16 (API 36), compileSdk 36, minSdk 26. Jetpack Compose Material 3, Room SQLite, WorkManager, AlarmManager, Retrofit.
+- **Autonomous Offline Architecture:** 100% offline schedule execution via `CachedWeekSnapshotEntity` + exact alarms (`AlarmManager.setExactAndAllowWhileIdle`) + `BootCompletedReceiver` + offline outbox queue (`PendingCommandEntity`).
+- **CP-SAT & FSRS Boundary:** FSRS-4.5 math and CP-SAT scheduler run strictly on laptop/backend; Android app executes optimistic local state in <10ms and syncs asynchronously.
 
 ---
 
@@ -20,35 +21,30 @@ cadence/
 ├── PHASE_ROADMAP.md                    # Roadmap across Phases 0-6 with checkboxes
 ├── README.md                           # Live status dashboard & verification guide
 ├── docker-compose.yml                  # Postgres 16, Ollama (GPU), Ollama-pull, AI, Backend
-├── ai-service/                         # Python 3.12 FastAPI microservice
-│   ├── app/
-│   │   ├── config.py                   # Pydantic Settings configuration
-│   │   ├── main.py                     # App factory, X-Trace-Id middleware, RFC 7807 handler
-│   │   ├── llm/ (date_resolver, gemini_client, prompts, router, validator)
-│   │   ├── models/ (ast, gpu_test, intent, problem_detail, replan, trace)
-│   │   ├── routers/ (gpu, health, intent, replan, solver)
-│   │   ├── security/ (scrubber.py)     # SecretScrubber (regex + Shannon entropy redacting keys/tokens)
-│   │   ├── services/ (ollama_client.py)# Ollama HTTP client (generate + /api/ps)
-│   │   └── solver/
-│   │       ├── cpsat_scheduler.py      # CadenceCpSatSolver (OR-Tools CP-SAT discrete optimizer)
-│   │       ├── diff_explainer.py       # DiffExplainer (Git-style causal reason explanations)
-│   │       ├── models.py               # SolverTask, BlockedWindow, LeisureWindow, DiffItem, TradeoffCard
-│   │       └── tradeoff_generator.py   # Slack-Based Overload Tradeoff Cards generator
+├── ai-service/                         # Python 3.12 FastAPI microservice (Port 8000)
+│   ├── app/ (config, main, llm/*, models/*, routers/*, security/*, services/*, solver/*)
 │   ├── tests/ (test_date_resolver, test_gpu_smoke, test_health, test_intent_parser, test_scrubber, test_solver, test_validator)
 │   ├── Dockerfile, pyproject.toml, requirements.txt, uv.lock
-└── backend/                            # Java 21 / Spring Boot 3.4 core backend
-    ├── src/main/java/com/cadence/
-    │   ├── client/ (AiServiceClient)   # RestClient communicating with ai-service:8000
-    │   ├── config/ (ApiKeyAuthFilter, SecurityConfig, TimezoneConfig, TraceIdFilter)
-    │   ├── controller/ (CardController, DemoSeederController, ScheduleController, ScheduleReplanController, SystemController)
-    │   ├── dto/ (BlockComplete, CardReview, ProblemDetail, WeeklySchedule, replan/*)
-    │   ├── exception/ (CadenceException, GlobalExceptionHandler)
-    │   ├── model/ (Users, Goals, TopicCards, Constraints, TimeBlocks, Proposals, Stats, Telemetry, Enums)
-    │   ├── repository/ (8 JPA repositories for all domain entities)
-    │   └── service/ (BurnoutGuardService, CurriculumSeederService, DurationCalibratorService, FsrsService, ScheduleReplanService)
-    ├── src/main/resources/ (application.yml, db/migration/V1__init_cadence_schema.sql, V2__add_proposed_blocks_to_proposals.sql)
-    ├── src/test/ (FsrsServiceTest, DurationCalibratorTest, BurnoutGuardTest, SystemControllerTest, ScheduleReplanIntegrationTest, CurriculumAndEndpointIntegrationTest)
-    ├── Dockerfile, mvnw, mvnw.cmd, pom.xml
+├── backend/                            # Java 21 / Spring Boot 3.4 core backend (Port 8080)
+│   ├── src/main/java/com/cadence/ (client/*, config/*, controller/*, dto/*, exception/*, model/*, repository/*, service/*)
+│   ├── src/main/resources/ (application.yml, db/migration/V1__init_cadence_schema.sql, V2__add_proposed_blocks_to_proposals.sql)
+│   ├── src/test/ (FsrsServiceTest, DurationCalibratorTest, BurnoutGuardTest, SystemControllerTest, ScheduleReplanIntegrationTest, CurriculumAndEndpointIntegrationTest)
+│   ├── Dockerfile, mvnw, mvnw.cmd, pom.xml
+└── android/                            # Kotlin + Jetpack Compose Mobile App (API 36)
+    ├── app/
+    │   ├── src/main/java/com/cadence/android/
+    │   │   ├── CadenceApplication.kt   # Notification channel & periodic WorkManager sync
+    │   │   ├── alarm/ (BootCompletedReceiver, CadenceAlarmManager, ExactAlarmPermissionHelper, NotificationReceiver)
+    │   │   ├── data/local/ (CadenceDatabase, dao/PendingCommandDao, dao/ScheduleDao, entity/*)
+    │   │   ├── data/remote/ (CadenceApiService, NetworkClient, RemoteDtos)
+    │   │   ├── data/repository/ (CadenceRepository)
+    │   │   ├── sync/ (SyncWorker)
+    │   │   └── ui/ (MainActivity, screens/TodayScreen, screens/SettingsScreen, theme/*)
+    │   ├── src/main/res/ (mipmap/*, values/*, drawable/*)
+    │   ├── src/test/ (AlarmTimeCalculationTest)
+    │   └── build.gradle.kts
+    ├── gradle/ (libs.versions.toml, wrapper/*)
+    ├── build.gradle.kts, gradle.properties, gradlew, gradlew.bat, settings.gradle.kts
 ```
 
 ---
