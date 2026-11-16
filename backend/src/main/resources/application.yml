@@ -25,6 +25,8 @@ spring:
 cadence:
   api-key: ${CADENCE_API_KEY:cadence-dev-secret-key-change-me}
   timezone: ${DEFAULT_USER_TIMEZONE:Asia/Kolkata}
+  cors:
+    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000}
   ai-service:
     url: ${AI_SERVICE_URL:http://localhost:8000}
   github:

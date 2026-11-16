@@ -1,8 +1,11 @@
 # Cadence AI Technical Map & Architecture Context
 
-## Current Phase Status: PHASE 4 COMPLETE (Phone-First MVP 100% Usable)
-- **Active Phase:** Phase 4 (GitHub Commit Polling, Diff-to-Flashcard Pipeline & Feynman Voice Grader)
-- **Next Phase:** Phase 5 (Next.js 15 Web Control Center, Telemetry Dashboard & Recruiter Sandbox)
+## Current Phase Status: PHASE 5 COMPLETE (Desktop Control Center Active)
+- **Active Phase:** Phase 5 (Next.js 15 Web Control Center, Telemetry Dashboard & Recruiter Sandbox)
+- **Next Phase:** Phase 6 (Human-Verified Evaluation Suite, CI Pipeline & QLoRA Distillation)
+- **Web App:** Next.js 15 App Router, TypeScript strict mode, Tailwind CSS, Lucide icons (Port 3000).
+- **Desktop Views:** 1) Weekly Schedule Grid, 2) Natural Language Replan & Diff Viewer, 3) Git Diff Autopsy & Feynman Flashcard Dojo, 4) Duration Bias & Telemetry Dashboard with Flight Recorder.
+- **Recruiter Sandbox:** 1-Click "Load Recruiter Demo Persona" button in header seeding 11 everyday lifestyle blocks and FSRS flashcards instantly.
 - **Android Target:** Android 16 (API 36), compileSdk 36, minSdk 26. Jetpack Compose Material 3, Room SQLite, WorkManager, AlarmManager, Retrofit.
 - **Autonomous Offline Architecture:** 100% offline schedule execution via `CachedWeekSnapshotEntity` + exact alarms (`AlarmManager.setExactAndAllowWhileIdle`) + `BootCompletedReceiver` + offline outbox queue (`PendingCommandEntity`).
 - **On-Device Fast-Path Router:** Executes `done`, `snooze 15m/30m`, and `emergency floor` directly in local Room SQLite in <10ms with visual latency telemetry.
@@ -48,6 +51,12 @@ cadence/
     │   └── build.gradle.kts
     ├── gradle/ (libs.versions.toml, wrapper/*)
     ├── build.gradle.kts, gradle.properties, gradlew, gradlew.bat, settings.gradle.kts
+└── web/                                # Next.js 15 Web Control Center (Port 3000)
+    ├── src/
+    │   ├── app/ (globals.css, layout.tsx, page.tsx)
+    │   ├── components/ (Header, WeeklyScheduleGrid, ReplanConsole, DiffAutopsyAndFeynman, TelemetryDashboard)
+    │   └── lib/ (api.ts, types.ts)
+    ├── next.config.ts, package.json, tailwind.config.ts, tsconfig.json
 ```
 
 ---

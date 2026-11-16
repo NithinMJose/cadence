@@ -58,11 +58,11 @@
   - [x] Feynman Voice Grader evaluating spoken transcripts against 4-point rubrics
   - [x] Android Feynman voice review interface with 60-second explanation capture
 
-- [ ] **Phase 5: Next.js 15 Web Control Center, Telemetry Dashboard & Recruiter Sandbox**
-  - [ ] Next.js 15 App Router + Tailwind CSS + Lucide icons
-  - [ ] Weekly schedule grid, replan console, diff viewer, and Feynman Dojo
-  - [ ] Duration bias telemetry dashboard with collapsible `_debug_trace` Flight Recorder
-  - [ ] 1-Click "Load Recruiter Demo Persona" button
+- [x] **Phase 5: Next.js 15 Web Control Center, Telemetry Dashboard & Recruiter Sandbox**
+  - [x] Next.js 15 App Router + Tailwind CSS + Lucide icons
+  - [x] Weekly schedule grid, replan console, diff viewer, and Feynman Dojo
+  - [x] Duration bias telemetry dashboard with collapsible `_debug_trace` Flight Recorder
+  - [x] 1-Click "Load Recruiter Demo Persona" button
 
 - [ ] **Phase 6: Human-Verified Evaluation Suite, CI Pipeline & QLoRA Distillation**
   - [ ] Golden intent and Feynman rubric evaluation suites with CLI verification tool

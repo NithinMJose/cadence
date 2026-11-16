@@ -15,8 +15,8 @@ Cadence is a phone-first adaptive learning coach and constraint scheduler. It co
 | **Phase 3A: Android App (Part 1)** | **VERIFIED COMPLETE** | Kotlin + Compose Material 3, Room SQLite `CachedWeekSnapshotEntity`, offline outbox, exact alarm manager, boot receiver, and APK installed on connected device. |
 | **Phase 3B: Android App (Part 2)** | **VERIFIED COMPLETE** | On-device Fast-Path Router (<10ms offline actions), Commute Flashcards screen (FSRS rating bar & rubric), Natural Language Replan screen (CP-SAT schedule diff & 1-tap confirmation), verified on Android 16 hardware. |
 | **Phase 4: GitHub Pipeline & Feynman Grader** | **VERIFIED COMPLETE** | GitHub REST API commit poller, secret-scrubbed diff autopsy inside `<untrusted_code_diff>` tags, FSRS flashcard synthesis, Session Warm-Up Brief attachment, 3-minute Emergency Floor micro-quiz, and Feynman Voice Dojo grading with FSRS update. |
-| **Phase 5: Next.js Web Control Center** | Next Up | Desktop control center, side-by-side diff viewer, and telemetry dashboard. |
-| **Phase 6: Evals, CI & QLoRA** | Queued | 60+ golden eval dataset, CI workflow, and RTX 5060 Blackwell QLoRA distillation check. |
+| **Phase 5: Next.js Web Control Center** | **VERIFIED COMPLETE** | Next.js 15 App Router, Tailwind CSS, Lucide icons, 4 desktop views (Weekly Schedule Grid, Natural Language Replan Console, GitHub Diff Autopsy & Feynman Flashcard Dojo, Duration Bias & Telemetry Dashboard with Flight Recorder), and 1-click Recruiter Demo Persona. |
+| **Phase 6: Evals, CI & QLoRA** | Next Up | 60+ golden eval dataset, CI workflow, and RTX 5060 Blackwell QLoRA distillation check. |
 
 ---
 

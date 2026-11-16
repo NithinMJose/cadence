@@ -47,8 +47,10 @@ public class ApiKeyAuthFilter extends OncePerRequestFilter {
     ) throws ServletException, IOException {
         String path = request.getRequestURI();
 
-        // Allow public health endpoints and actuator without API key
-        if (path.equals("/api/v1/system/health") || path.startsWith("/actuator")) {
+        // Allow CORS pre-flight OPTIONS requests, public health endpoints, and actuator without API key
+        if ("OPTIONS".equalsIgnoreCase(request.getMethod())
+                || path.equals("/api/v1/system/health")
+                || path.startsWith("/actuator")) {
             filterChain.doFilter(request, response);
             return;
         }
