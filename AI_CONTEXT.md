@@ -1,11 +1,13 @@
 # Cadence AI Technical Map & Architecture Context
 
-## Current Phase Status: PHASE 3A COMPLETE (Awaiting User Verification)
-- **Active Phase:** Phase 3A (Phone-First Android App, Part 1: Offline Snapshot, Exact Alarms, BootReceiver & Today Screen)
-- **Next Phase:** Phase 3B (Phone-First Android App, Part 2: Fast-Path Router, Voice Replan & Commute Flashcards)
+## Current Phase Status: PHASE 3B COMPLETE (Verified on Hardware)
+- **Active Phase:** Phase 3B (Fast-Path Router, Voice/Natural Language Replan & Commute Flashcards)
+- **Next Phase:** Phase 4 (GitHub Commit Polling, Diff-to-Flashcard Pipeline & Feynman Voice Grader)
 - **Android Target:** Android 16 (API 36), compileSdk 36, minSdk 26. Jetpack Compose Material 3, Room SQLite, WorkManager, AlarmManager, Retrofit.
 - **Autonomous Offline Architecture:** 100% offline schedule execution via `CachedWeekSnapshotEntity` + exact alarms (`AlarmManager.setExactAndAllowWhileIdle`) + `BootCompletedReceiver` + offline outbox queue (`PendingCommandEntity`).
-- **CP-SAT & FSRS Boundary:** FSRS-4.5 math and CP-SAT scheduler run strictly on laptop/backend; Android app executes optimistic local state in <10ms and syncs asynchronously.
+- **On-Device Fast-Path Router:** Executes `done`, `snooze 15m/30m`, and `emergency floor` directly in local Room SQLite in <10ms with visual latency telemetry.
+- **Commute Flashcards:** Swipeable/flippable FSRS-4.5 cards with 4-button rating bar, rubric checkpoints, and optimistic local grading.
+- **Visual Replan:** Dispatches natural language voice/text constraints, renders Git-style before/after schedule diffs with causal reason tags, capacity tradeoff cards, and 1-tap confirmation.
 
 ---
 
@@ -35,13 +37,14 @@ cadence/
     │   ├── src/main/java/com/cadence/android/
     │   │   ├── CadenceApplication.kt   # Notification channel & periodic WorkManager sync
     │   │   ├── alarm/ (BootCompletedReceiver, CadenceAlarmManager, ExactAlarmPermissionHelper, NotificationReceiver)
-    │   │   ├── data/local/ (CadenceDatabase, dao/PendingCommandDao, dao/ScheduleDao, entity/*)
+    │   │   ├── data/local/ (CadenceDatabase, dao/*, entity/*)
     │   │   ├── data/remote/ (CadenceApiService, NetworkClient, RemoteDtos)
     │   │   ├── data/repository/ (CadenceRepository)
+    │   │   ├── router/ (FastPathRouter, FastPathResult)
     │   │   ├── sync/ (SyncWorker)
-    │   │   └── ui/ (MainActivity, screens/TodayScreen, screens/SettingsScreen, theme/*)
+    │   │   └── ui/ (MainActivity, screens/TodayScreen, screens/FlashcardsScreen, screens/VoiceReplanScreen, screens/SettingsScreen, theme/*)
     │   ├── src/main/res/ (mipmap/*, values/*, drawable/*)
-    │   ├── src/test/ (AlarmTimeCalculationTest)
+    │   ├── src/test/ (AlarmTimeCalculationTest, FastPathRouterCommandParsingTest)
     │   └── build.gradle.kts
     ├── gradle/ (libs.versions.toml, wrapper/*)
     ├── build.gradle.kts, gradle.properties, gradlew, gradlew.bat, settings.gradle.kts

@@ -37,46 +37,57 @@ class CadenceCpSatSolver:
     def _slot_to_dt(self, slot: int) -> datetime:
         return self.start_dt + timedelta(minutes=slot * SLOT_MINUTES)
 
-    def _add_blocked_range(self, start_slot: int, end_slot: int, name: str) -> None:
-        """Enforces hard no-overlap for a designated blocked or leisure range."""
-        s1 = max(0, min(self.num_slots - 1, start_slot))
-        s2 = max(s1 + 1, min(self.num_slots, end_slot))
-        size = s2 - s1
-        if size > 0:
-            fixed_interval = self.model.NewIntervalVar(s1, size, s2, f"blocked_{name}_{s1}")
-            self.intervals.append(fixed_interval)
+    def _merge_ranges(self, raw: List[Tuple[int, int]]) -> List[Tuple[int, int]]:
+        if not raw:
+            return []
+        sorted_r = sorted(raw, key=lambda x: x[0])
+        merged = [sorted_r[0]]
+        for cur_s, cur_e in sorted_r[1:]:
+            prev_s, prev_e = merged[-1]
+            if cur_s <= prev_e:
+                merged[-1] = (prev_s, max(prev_e, cur_e))
+            else:
+                merged.append((cur_s, cur_e))
+        return merged
 
-    def _block_night_hours(self) -> None:
-        """Protects restorative sleep (23:00 to 07:00) by blocking slots."""
+    def _collect_night_ranges(self) -> List[Tuple[int, int]]:
+        ranges = []
         cur = self.start_dt
         for day in range(self.req.horizon_days):
             day_start = cur + timedelta(days=day)
-            # Sleep 23:00 to 24:00
             s_night = self._dt_to_slot(day_start.replace(hour=23, minute=0, second=0))
             s_mid = self._dt_to_slot(day_start.replace(hour=23, minute=59, second=59)) + 1
-            self._add_blocked_range(s_night, s_mid, f"sleep_late_d{day}")
-            # Sleep 00:00 to 07:00
+            ranges.append((s_night, s_mid))
             s_morn_start = self._dt_to_slot(day_start.replace(hour=0, minute=0, second=0))
             s_morn_end = self._dt_to_slot(day_start.replace(hour=7, minute=0, second=0))
-            self._add_blocked_range(s_morn_start, s_morn_end, f"sleep_early_d{day}")
+            ranges.append((s_morn_start, s_morn_end))
+        return ranges
 
     def solve(self) -> SolverResponse:
         t_start = time.perf_counter()
-        self._block_night_hours()
+        raw_blocked = self._collect_night_ranges()
 
         # 1. Enforce hard blocked windows
-        for idx, bw in enumerate(self.req.blocked_windows):
+        for bw in self.req.blocked_windows:
             if bw.is_hard:
                 s1 = self._dt_to_slot(bw.start)
                 s2 = min(self.num_slots, int(math.ceil((bw.end.astimezone(self.tz) - self.start_dt).total_seconds() / (SLOT_MINUTES * 60))))
-                self._add_blocked_range(s1, s2, f"hard_block_{idx}")
+                raw_blocked.append((s1, max(s1 + 1, s2)))
 
         # 2. Enforce protected leisure windows
-        for idx, lw in enumerate(self.req.leisure_windows):
+        for lw in self.req.leisure_windows:
             if lw.is_protected:
                 s1 = self._dt_to_slot(lw.start)
                 s2 = min(self.num_slots, int(math.ceil((lw.end.astimezone(self.tz) - self.start_dt).total_seconds() / (SLOT_MINUTES * 60))))
-                self._add_blocked_range(s1, s2, f"leisure_{idx}")
+                raw_blocked.append((s1, max(s1 + 1, s2)))
+
+        # Merge overlapping unavailable ranges into disjoint immovable blocks
+        for raw_s1, raw_s2 in self._merge_ranges(raw_blocked):
+            s1 = max(0, min(self.num_slots - 1, raw_s1))
+            s2 = max(s1 + 1, min(self.num_slots, raw_s2))
+            size = s2 - s1
+            if size > 0:
+                self.intervals.append(self.model.NewIntervalVar(s1, size, s2, f"bl_{s1}_{s2}"))
 
         # 3. Create task decision variables & slack variables
         task_vars = {}

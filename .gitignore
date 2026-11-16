@@ -26,6 +26,8 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+*.mv.db
+*.trace.db
 
 # NOTE: Do NOT ignore lockfiles (package-lock.json, uv.lock, gradle.lockfile).
 # Lockfiles are committed to ensure reproducible builds across machines.

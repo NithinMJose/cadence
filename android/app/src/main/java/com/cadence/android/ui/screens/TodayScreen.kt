@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -28,6 +29,8 @@ fun TodayScreen(
     pendingCount: Int,
     onCompleteBlock: (String) -> Unit,
     onDowngradeFloor: (String) -> Unit,
+    onSnoozeBlock: (String, Int) -> Unit,
+    statusFeedback: String? = null,
     modifier: Modifier = Modifier
 ) {
     val timeFormatter = remember { SimpleDateFormat("HH:mm", Locale.getDefault()) }
@@ -39,7 +42,7 @@ fun TodayScreen(
         Text(text = "Today's Schedule", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
         Text(text = todayStr, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
 
-        Spacer(modifier = Modifier.height(12.dp))
+        Spacer(modifier = Modifier.height(10.dp))
 
         // Status Row (Flex credits, Offline snapshot status, Outbox)
         Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -63,7 +66,24 @@ fun TodayScreen(
             }
         }
 
-        Spacer(modifier = Modifier.height(16.dp))
+        if (statusFeedback != null) {
+            Spacer(modifier = Modifier.height(8.dp))
+            Surface(
+                color = MaterialTheme.colorScheme.primaryContainer,
+                shape = RoundedCornerShape(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = statusFeedback,
+                    style = MaterialTheme.typography.bodySmall,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                )
+            }
+        }
+
+        Spacer(modifier = Modifier.height(12.dp))
 
         if (blocks.isEmpty()) {
             Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -81,7 +101,8 @@ fun TodayScreen(
                         block = block,
                         timeFormatter = timeFormatter,
                         onComplete = { onCompleteBlock(block.id) },
-                        onDowngrade = { onDowngradeFloor(block.id) }
+                        onDowngrade = { onDowngradeFloor(block.id) },
+                        onSnooze = { onSnoozeBlock(block.id, 15) }
                     )
                 }
             }
@@ -94,7 +115,8 @@ fun TimeBlockCard(
     block: LocalTimeBlock,
     timeFormatter: SimpleDateFormat,
     onComplete: () -> Unit,
-    onDowngrade: () -> Unit
+    onDowngrade: () -> Unit,
+    onSnooze: () -> Unit
 ) {
     val startStr = timeFormatter.format(Date(block.startTimeEpochMs))
     val endStr = timeFormatter.format(Date(block.endTimeEpochMs))
@@ -146,18 +168,20 @@ fun TimeBlockCard(
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End, verticalAlignment = Alignment.CenterVertically) {
                 if (!block.isCompleted) {
+                    OutlinedButton(onClick = onSnooze, modifier = Modifier.padding(end = 6.dp)) {
+                        Icon(Icons.Default.Schedule, contentDescription = null, modifier = Modifier.size(14.dp))
+                        Spacer(modifier = Modifier.width(2.dp))
+                        Text("+15m", fontSize = 12.sp)
+                    }
                     if (!block.isEmergencyFloor && block.deviceType == "LAPTOP_DEEP") {
-                        OutlinedButton(
-                            onClick = onDowngrade,
-                            modifier = Modifier.padding(end = 8.dp)
-                        ) {
-                            Text("3m Floor")
+                        OutlinedButton(onClick = onDowngrade, modifier = Modifier.padding(end = 6.dp)) {
+                            Text("3m Floor", fontSize = 12.sp)
                         }
                     }
                     Button(onClick = onComplete) {
-                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(16.dp))
+                        Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(14.dp))
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text("Mark Done")
+                        Text("Done", fontSize = 12.sp)
                     }
                 } else {
                     AssistChip(

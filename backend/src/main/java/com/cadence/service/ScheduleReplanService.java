@@ -16,6 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -68,7 +69,7 @@ public class ScheduleReplanService {
         int flexCredits = burnoutTelemetryRepository.findByUserId(userId)
                 .map(BurnoutTelemetryEntity::getFlexCreditsMinutes).orElse(0);
 
-        Map<String, Object> payload = buildAiPayload(user, request, existingBlocks, constraints, horizonStart, flexCredits);
+        Map<String, Object> payload = buildAiPayload(user, request, existingBlocks, constraints, horizonStart, flexCredits, userTz);
         JsonNode aiResponse = aiServiceClient.callReplanPipeline(payload, traceId);
 
         UUID proposalId = UUID.randomUUID();
@@ -177,12 +178,12 @@ public class ScheduleReplanService {
         return new ReplanRejectResponse(proposalId, ProposalStatus.REJECTED.name(), "Proposal was rejected and discarded.");
     }
 
-    private Map<String, Object> buildAiPayload(UserEntity user, ReplanProposeRequest req, List<TimeBlockEntity> blocks, List<ScheduleConstraintEntity> constraints, ZonedDateTime horizonStart, int flexCredits) {
+    private Map<String, Object> buildAiPayload(UserEntity user, ReplanProposeRequest req, List<TimeBlockEntity> blocks, List<ScheduleConstraintEntity> constraints, ZonedDateTime horizonStart, int flexCredits, ZoneId userTz) {
         Map<String, Object> p = new HashMap<>();
         p.put("user_message", req.userMessage());
         p.put("constraint_ast", req.constraintAst());
         p.put("timezone", user.getTimezone());
-        p.put("horizon_start", horizonStart.toString());
+        p.put("horizon_start", horizonStart.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
         p.put("horizon_days", 7);
         p.put("flex_credits_available_min", flexCredits);
 
@@ -195,18 +196,12 @@ public class ScheduleReplanService {
                 "device_venue", b.getDeviceType().name(),
                 "urgency_score", 5.0,
                 "cognitive_weight", 3.0,
-                "original_start", b.getStartTime().toString(),
-                "original_end", b.getEndTime().toString()
+                "original_start", b.getStartTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
+                "original_end", b.getEndTime().format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
         )).toList();
         p.put("tasks", taskList);
-
-        List<Map<String, Object>> blockedList = new ArrayList<>();
-        for (ScheduleConstraintEntity c : constraints) {
-            if (c.isHardBlock() && c.getWindowStart() != null && c.getWindowEnd() != null) {
-                blockedList.add(Map.of("start", c.getWindowStart(), "end", c.getWindowEnd(), "reason", c.getReason(), "is_hard", true));
-            }
-        }
-        p.put("existing_blocked_windows", blockedList);
+        p.put("existing_blocked_windows", ConstraintExpansionHelper.expandBlocked(constraints, horizonStart, userTz));
+        p.put("existing_leisure_windows", ConstraintExpansionHelper.expandLeisure(constraints, horizonStart, userTz));
         return p;
     }
 

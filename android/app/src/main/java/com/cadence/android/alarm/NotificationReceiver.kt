@@ -31,10 +31,10 @@ class NotificationReceiver : BroadcastReceiver() {
 
         when (intent.action) {
             ACTION_DOWNGRADE_FLOOR -> {
-                // One-tap downgrade directly from notification shade
+                // One-tap downgrade directly from notification shade via FastPathRouter (<10ms)
                 CoroutineScope(Dispatchers.IO).launch {
                     val repo = CadenceRepository(context)
-                    repo.downgradeToEmergencyFloor(blockId)
+                    repo.fastPathRouter.emergencyFloor(blockId)
                 }
                 val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
                 notificationManager.cancel(blockId.hashCode())

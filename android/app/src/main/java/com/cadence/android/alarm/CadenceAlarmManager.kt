@@ -16,12 +16,31 @@ class CadenceAlarmManager(private val context: Context) {
 
         val nowMs = System.currentTimeMillis()
         for (block in blocks) {
-            // Alarm fires 5 minutes before scheduled session
-            val reminderTimeMs = block.startTimeEpochMs - (5 * 60 * 1000L)
-            if (reminderTimeMs > nowMs && !block.isCompleted) {
-                scheduleExactAlarm(block, reminderTimeMs)
-            }
+            scheduleAlarmForBlock(block)
         }
+    }
+
+    fun scheduleAlarmForBlock(block: LocalTimeBlock) {
+        if (!ExactAlarmPermissionHelper.canScheduleExactAlarms(context)) return
+        val nowMs = System.currentTimeMillis()
+        val reminderTimeMs = block.startTimeEpochMs - (5 * 60 * 1000L)
+        if (reminderTimeMs > nowMs && !block.isCompleted) {
+            scheduleExactAlarm(block, reminderTimeMs)
+        }
+    }
+
+    fun cancelAlarmForBlock(blockId: String) {
+        val intent = Intent(context, NotificationReceiver::class.java).apply {
+            action = NotificationReceiver.ACTION_SESSION_REMINDER
+        }
+        val flags = PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        val pendingIntent = PendingIntent.getBroadcast(
+            context,
+            blockId.hashCode(),
+            intent,
+            flags
+        )
+        alarmManager.cancel(pendingIntent)
     }
 
     private fun scheduleExactAlarm(block: LocalTimeBlock, triggerAtMs: Long) {

@@ -14,6 +14,15 @@ interface CadenceApiService {
         @Body request: CompleteBlockRequestDto
     ): Response<CompleteBlockResponseDto>
 
+    @GET("/api/v1/cards/due")
+    suspend fun getDueCards(): Response<List<TopicCardRemoteDto>>
+
+    @POST("/api/v1/cards/{id}/review")
+    suspend fun reviewCard(
+        @Path("id") cardId: String,
+        @Body request: CardReviewRequestDto
+    ): Response<CardReviewResponseDto>
+
     @POST("/api/v1/schedule/replan/propose")
     suspend fun proposeReplan(
         @Body request: ReplanProposeRequestDto

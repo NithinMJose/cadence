@@ -13,8 +13,8 @@ Cadence is a phone-first adaptive learning coach and constraint scheduler. It co
 | **Phase 2A: Intent Compiler & Scrubber** | **VERIFIED COMPLETE** | `SecretScrubber` (Shannon entropy + regex credential redaction), `LLMRouter` (3-part prompt sandwich), `ConstraintMutationAST` with `SelfHealingValidator` (max 2 retries), `SymbolicDateResolver` (`Asia/Kolkata`), ambiguity elicitation, and 15-case smoke evaluation. |
 | **Phase 2B: CP-SAT Solver & Replan** | **VERIFIED COMPLETE** | Google OR-Tools CP-SAT scheduler, Git-style Schedule Diff & Constraint Explanation, Slack-Based Overload Tradeoff Cards, and Spring Boot Two-Phase Replan confirmation (`PROPOSED` -> `CONFIRMED`/`REJECTED`). |
 | **Phase 3A: Android App (Part 1)** | **VERIFIED COMPLETE** | Kotlin + Compose Material 3, Room SQLite `CachedWeekSnapshotEntity`, offline outbox, exact alarm manager, boot receiver, and APK installed on connected device. |
-| **Phase 3B: Android App (Part 2)** | Next Up | On-device fast-path router (<10ms offline actions), voice replan, and commute flashcards screen. |
-| **Phase 4: GitHub Pipeline & Feynman Grader** | Queued | Commit diff autopsy, FSRS card generator, warm-up briefs, and Feynman voice grader. |
+| **Phase 3B: Android App (Part 2)** | **VERIFIED COMPLETE** | On-device Fast-Path Router (<10ms offline actions), Commute Flashcards screen (FSRS rating bar & rubric), Natural Language Replan screen (CP-SAT schedule diff & 1-tap confirmation), verified on Android 16 hardware. |
+| **Phase 4: GitHub Pipeline & Feynman Grader** | Next Up | Commit diff autopsy, FSRS card generator, warm-up briefs, and Feynman voice grader. |
 | **Phase 5: Next.js Web Control Center** | Queued | Desktop control center, side-by-side diff viewer, and telemetry dashboard. |
 | **Phase 6: Evals, CI & QLoRA** | Queued | 60+ golden eval dataset, CI workflow, and RTX 5060 Blackwell QLoRA distillation check. |
 

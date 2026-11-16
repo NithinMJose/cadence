@@ -46,10 +46,11 @@
   - [x] Today & Commute Screen + Settings & Diagnostics Screen
   - [x] Debug APK built and installed via ADB directly onto connected Android phone (`00091349R001536`)
 
-- [ ] **Phase 3B: Phone-First Android App, Part 2 (Fast-Path Router, Voice Replan & Flashcards)**
-  - [ ] On-device Fast-Path Router (`done`, `snooze 30m`, `emergency floor` in <10ms offline)
-  - [ ] Voice Replan Screen with speech recognition, visual schedule diff, and 1-tap confirmation
-  - [ ] Commute Flashcards Screen with swipeable FSRS cards and offline grade queue
+- [x] **Phase 3B: Phone-First Android App, Part 2 (Fast-Path Router, Voice Replan & Flashcards)**
+  - [x] On-device Fast-Path Router (`done`, `snooze 15m/30m`, `emergency floor` in <10ms offline with visual latency telemetry)
+  - [x] Voice & Natural Language Replan Screen with speech recognition, visual schedule diff, and 1-tap confirmation
+  - [x] Commute Flashcards Screen with swipeable/flippable FSRS-4.5 cards and offline grade queue
+  - [x] Verified on physical Android 16 hardware (`00091349R001536`) with all 4 screens and end-to-end sync
 
 - [ ] **Phase 4: GitHub Commit Polling, Diff-to-Flashcard Pipeline & Feynman Voice Grader (COMPLETE MVP!)**
   - [ ] GitHub Commit Poller via REST API + manual diff endpoint

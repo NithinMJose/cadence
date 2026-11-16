@@ -1,6 +1,7 @@
 import time
 import uuid
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.config import get_settings
@@ -38,6 +39,17 @@ async def trace_and_timing_middleware(request: Request, call_next):
     response.headers["X-Trace-Id"] = trace_id
     response.headers["X-Response-Time-Ms"] = f"{elapsed_ms:.2f}"
     return response
+
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError) -> JSONResponse:
+    print(f"Validation error on {request.url.path}: {exc.errors()}", flush=True)
+    trace_id = getattr(request.state, "trace_id", "unknown-trace")
+    return JSONResponse(
+        status_code=422,
+        content={"detail": exc.errors(), "trace_id": trace_id},
+        headers={"Content-Type": "application/problem+json", "X-Trace-Id": trace_id},
+    )
 
 
 @app.exception_handler(CadenceServiceException)

@@ -11,6 +11,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarToday
+import androidx.compose.material.icons.filled.Mic
+import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,8 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.core.content.ContextCompat
 import com.cadence.android.data.remote.NetworkClient
 import com.cadence.android.data.repository.CadenceRepository
+import com.cadence.android.ui.screens.FlashcardsScreen
 import com.cadence.android.ui.screens.SettingsScreen
 import com.cadence.android.ui.screens.TodayScreen
+import com.cadence.android.ui.screens.VoiceReplanScreen
 import com.cadence.android.ui.theme.CadenceTheme
 import kotlinx.coroutines.launch
 
@@ -62,10 +66,12 @@ fun CadenceMainApp(repository: CadenceRepository) {
     var selectedTab by remember { mutableIntStateOf(0) }
     val scope = rememberCoroutineScope()
     var syncMessage by remember { mutableStateOf<String?>(null) }
+    var actionFeedback by remember { mutableStateOf<String?>(null) }
 
     val blocks by repository.blocksFlow.collectAsState(initial = emptyList())
     val snapshot by repository.snapshotFlow.collectAsState(initial = null)
     val pendingCount by repository.pendingCountFlow.collectAsState(initial = 0)
+    val dueCards by repository.dueCardsFlow.collectAsState(initial = emptyList())
 
     Scaffold(
         bottomBar = {
@@ -79,6 +85,18 @@ fun CadenceMainApp(repository: CadenceRepository) {
                 NavigationBarItem(
                     selected = selectedTab == 1,
                     onClick = { selectedTab = 1 },
+                    icon = { Icon(Icons.Default.PlayArrow, contentDescription = "Cards") },
+                    label = { Text("Cards (${dueCards.size})") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 2,
+                    onClick = { selectedTab = 2 },
+                    icon = { Icon(Icons.Default.Mic, contentDescription = "Replan") },
+                    label = { Text("Replan") }
+                )
+                NavigationBarItem(
+                    selected = selectedTab == 3,
+                    onClick = { selectedTab = 3 },
                     icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
                     label = { Text("Settings") }
                 )
@@ -91,14 +109,45 @@ fun CadenceMainApp(repository: CadenceRepository) {
                 snapshot = snapshot,
                 pendingCount = pendingCount,
                 onCompleteBlock = { blockId ->
-                    scope.launch { repository.completeBlock(blockId, 45) }
+                    scope.launch {
+                        val res = repository.fastPathRouter.markDone(blockId)
+                        actionFeedback = "⚡ ${res.message}"
+                    }
                 },
                 onDowngradeFloor = { blockId ->
-                    scope.launch { repository.downgradeToEmergencyFloor(blockId) }
+                    scope.launch {
+                        val res = repository.fastPathRouter.emergencyFloor(blockId)
+                        actionFeedback = "⚡ ${res.message}"
+                    }
+                },
+                onSnoozeBlock = { blockId, mins ->
+                    scope.launch {
+                        val res = repository.fastPathRouter.snooze(blockId, mins)
+                        actionFeedback = "⚡ ${res.message}"
+                    }
+                },
+                statusFeedback = actionFeedback,
+                modifier = Modifier.padding(innerPadding)
+            )
+            1 -> FlashcardsScreen(
+                dueCards = dueCards,
+                onGradeCard = { cardId, grade ->
+                    scope.launch {
+                        val res = repository.gradeCardOptimistic(cardId, grade)
+                        actionFeedback = "⚡ ${res.message}"
+                    }
+                },
+                onRefresh = {
+                    scope.launch { repository.syncWithBackend() }
                 },
                 modifier = Modifier.padding(innerPadding)
             )
-            1 -> SettingsScreen(
+            2 -> VoiceReplanScreen(
+                onProposeReplan = { prompt -> repository.proposeReplan(prompt) },
+                onConfirmReplan = { proposalId -> repository.confirmReplan(proposalId).map { } },
+                modifier = Modifier.padding(innerPadding)
+            )
+            3 -> SettingsScreen(
                 onSyncNow = {
                     scope.launch {
                         syncMessage = "Syncing with backend..."

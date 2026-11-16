@@ -68,11 +68,10 @@
             <artifactId>flyway-database-postgresql</artifactId>
         </dependency>
 
-        <!-- H2 Database for Testing -->
+        <!-- H2 Database for Testing and Local Development -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <scope>test</scope>
         </dependency>
 
         <!-- Jackson Datatype JSR310 for Java 8 / ZonedDateTime -->

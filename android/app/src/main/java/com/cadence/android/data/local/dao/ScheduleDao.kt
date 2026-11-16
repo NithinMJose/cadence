@@ -38,6 +38,9 @@ interface ScheduleDao {
     @Query("UPDATE local_time_blocks SET status = :status WHERE id = :id")
     suspend fun updateBlockStatus(id: String, status: String)
 
+    @Query("UPDATE local_time_blocks SET startTimeEpochMs = :newStart, endTimeEpochMs = :newEnd WHERE id = :id")
+    suspend fun updateBlockTimes(id: String, newStart: Long, newEnd: Long)
+
     @Query("UPDATE local_time_blocks SET isEmergencyFloor = :isFloor, durationMin = :durationMin WHERE id = :id")
     suspend fun setEmergencyFloor(id: String, isFloor: Boolean, durationMin: Int = 3)
 
