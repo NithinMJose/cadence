@@ -68,5 +68,5 @@
   - [x] Golden intent (65 cases) and Feynman rubric (20 cases) evaluation suites with CLI verification tool (`verify_eval_cases.py`)
   - [x] Full evaluation benchmark runner (`run_full_benchmark.py`) generating human-verified scorecard report in `EVALS.md`
   - [x] Architecture documentation with 4 Mermaid diagrams (`ARCHITECTURE.md`)
-  - [x] GitHub Actions automated CI verification pipeline (`.github/workflows/ci.yml`)
+  - [x] Full-stack automated verification script (`scripts/verify_all.ps1`) covering backend, AI service, and web build
   - [x] Standalone QLoRA distillation script (`ai-service/notebooks/train_qlora.py`) with RTX 5060 Blackwell CUDA verification
