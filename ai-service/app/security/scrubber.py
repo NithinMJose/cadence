@@ -83,7 +83,7 @@ class SecretScrubber:
             ):
                 entropy = self.calculate_shannon_entropy(clean)
                 is_hex = bool(re.fullmatch(r"[0-9a-fA-F]+", clean))
-                is_secret = (is_hex and entropy >= 3.65) or (not is_hex and entropy >= 4.0)
+                is_secret = (is_hex and entropy >= 3.2) or (not is_hex and entropy >= 3.8)
 
                 if is_secret:
                     scrubbed = scrubbed.replace(clean, self.REDACTION_TOKEN)

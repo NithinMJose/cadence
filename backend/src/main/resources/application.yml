@@ -25,6 +25,8 @@ spring:
 cadence:
   api-key: ${CADENCE_API_KEY:cadence-dev-secret-key-change-me}
   timezone: ${DEFAULT_USER_TIMEZONE:Asia/Kolkata}
+  ai-service:
+    url: ${AI_SERVICE_URL:http://localhost:8000}
 
 management:
   endpoints:

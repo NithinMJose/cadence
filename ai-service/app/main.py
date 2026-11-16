@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from app.config import get_settings
 from app.models.problem_detail import CadenceServiceException, ProblemDetail
-from app.routers import gpu, health, intent
+from app.routers import gpu, health, intent, replan, solver
 
 settings = get_settings()
 
@@ -87,3 +87,5 @@ async def generic_exception_handler(request: Request, exc: Exception) -> JSONRes
 app.include_router(health.router)
 app.include_router(gpu.router)
 app.include_router(intent.router)
+app.include_router(solver.router)
+app.include_router(replan.router)

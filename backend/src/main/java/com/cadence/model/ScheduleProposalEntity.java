@@ -27,6 +27,9 @@ public class ScheduleProposalEntity {
     @Column(name = "tradeoff_cards_json", columnDefinition = "text")
     private String tradeoffCardsJson;
 
+    @Column(name = "proposed_blocks_json", columnDefinition = "text")
+    private String proposedBlocksJson;
+
     @Column(name = "schedule_version", nullable = false)
     private int scheduleVersion = 1;
 
@@ -52,6 +55,9 @@ public class ScheduleProposalEntity {
 
     public String getTradeoffCardsJson() { return tradeoffCardsJson; }
     public void setTradeoffCardsJson(String tradeoffCardsJson) { this.tradeoffCardsJson = tradeoffCardsJson; }
+
+    public String getProposedBlocksJson() { return proposedBlocksJson; }
+    public void setProposedBlocksJson(String proposedBlocksJson) { this.proposedBlocksJson = proposedBlocksJson; }
 
     public int getScheduleVersion() { return scheduleVersion; }
     public void setScheduleVersion(int scheduleVersion) { this.scheduleVersion = scheduleVersion; }

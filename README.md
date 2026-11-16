@@ -11,8 +11,8 @@ Cadence is a phone-first adaptive learning coach and constraint scheduler. It co
 | **Phase 0: Scaffold & GPU Smoke Test** | **VERIFIED COMPLETE** | Monorepo scaffold, Docker GPU passthrough, auto-pull container, `/ai-service` and `/backend` skeletons with passing automated tests. |
 | **Phase 1: System of Record & FSRS-4.5** | **VERIFIED COMPLETE** | PostgreSQL schema, Flyway migrations, reference-verified Java FSRS-4.5 (17 weights), duration bias calibrator (EMA $\alpha=0.3$), burnout guard (flex credits banking), 30-day curriculum seeder, and phone-ready read/log endpoints. |
 | **Phase 2A: Intent Compiler & Scrubber** | **VERIFIED COMPLETE** | `SecretScrubber` (Shannon entropy + regex credential redaction), `LLMRouter` (3-part prompt sandwich), `ConstraintMutationAST` with `SelfHealingValidator` (max 2 retries), `SymbolicDateResolver` (`Asia/Kolkata`), ambiguity elicitation, and 15-case smoke evaluation. |
-| **Phase 2B: CP-SAT Solver & Replan** | Queued | OR-Tools CP-SAT solver, schedule diff explanations, overload tradeoff cards, and two-phase replan confirmation. |
-| **Phase 3A: Android App (Part 1)** | Queued | Offline snapshot, exact alarm manager, boot receiver, and Today/Commute screen. *(Can run directly after Phase 1!)* |
+| **Phase 2B: CP-SAT Solver & Replan** | **VERIFIED COMPLETE** | Google OR-Tools CP-SAT scheduler, Git-style Schedule Diff & Constraint Explanation, Slack-Based Overload Tradeoff Cards, and Spring Boot Two-Phase Replan confirmation (`PROPOSED` -> `CONFIRMED`/`REJECTED`). |
+| **Phase 3A: Android App (Part 1)** | Next Up | Offline snapshot, exact alarm manager, boot receiver, and Today/Commute screen. *(Can run directly after Phase 1!)* |
 | **Phase 3B: Android App (Part 2)** | Queued | On-device fast-path router, voice replan, and commute flashcards screen. |
 | **Phase 4: GitHub Pipeline & Feynman Grader** | Queued | Commit diff autopsy, FSRS card generator, warm-up briefs, and Feynman voice grader. |
 | **Phase 5: Next.js Web Control Center** | Queued | Desktop control center, side-by-side diff viewer, and telemetry dashboard. |
@@ -44,7 +44,7 @@ Cadence is a phone-first adaptive learning coach and constraint scheduler. It co
 cd ai-service
 uv run pytest -v
 ```
-*(Runs 17 tests validating health probe, GPU VRAM residency calculation, secret scrubber, symbolic date resolver, self-healing validator loop, and the 15-case natural language intent evaluation suite).*
+*(Runs 23 tests validating health probe, GPU VRAM residency calculation, secret scrubber, symbolic date resolver, self-healing validator loop, 15-case intent eval, OR-Tools CP-SAT scheduler, Schedule Diff explainer, and Slack-Based Overload Tradeoff Cards).*
 
 ### 2. Spring Boot Backend (`/backend`):
 ```bash
@@ -52,7 +52,31 @@ cd backend
 .\mvnw.cmd test    # Windows
 ./mvnw test        # Linux / macOS
 ```
-*(Runs 16 tests validating FSRS-4.5 reference vectors, Duration Bias Calibrator EMA, Burnout Guard flex credits, public /health, API key authentication, and end-to-end curriculum seeding & retrieval).*
+*(Runs 18 tests validating FSRS-4.5 reference vectors, Duration Bias Calibrator EMA, Burnout Guard flex credits, public /health, API key authentication, and end-to-end curriculum seeding & Two-Phase Replan proposal and confirmation).*
+
+---
+
+## Two-Phase Replan Workflow (`/api/v1/schedule/replan`)
+
+1. **Phase 1: Propose Replan**
+```bash
+curl -i -X POST http://localhost:8080/api/v1/schedule/replan/propose \
+  -H "X-Cadence-Api-Key: cadence-dev-secret-key-change-me" \
+  -H "Content-Type: application/json" \
+  -d '{"user_message": "Block Friday evening from 7pm to 11pm for party"}'
+```
+Returns a `PENDING` proposal with Git-style `diff_items`, capacity negotiation `tradeoff_cards` (if overloaded), and flight recorder `_debug_trace`.
+
+2. **Phase 2: Confirm or Reject Replan**
+```bash
+# Confirm and atomically commit proposed blocks to database:
+curl -i -X POST http://localhost:8080/api/v1/schedule/replan/{proposalId}/confirm \
+  -H "X-Cadence-Api-Key: cadence-dev-secret-key-change-me"
+
+# Or discard the proposal:
+curl -i -X POST http://localhost:8080/api/v1/schedule/replan/{proposalId}/reject \
+  -H "X-Cadence-Api-Key: cadence-dev-secret-key-change-me"
+```
 
 ---
 

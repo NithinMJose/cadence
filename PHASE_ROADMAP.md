@@ -27,14 +27,14 @@
   - [x] Ambiguity Elicitation returning one-tap clarification options for vague user prompts
   - [x] `POST /api/v1/ai/parse-intent` endpoint with 15-case smoke evaluation (17/17 tests passed in `/ai-service`)
 
-- [ ] **Phase 2B: OR-Tools CP-SAT Scheduler, Schedule Diff & Spring Boot Replan Wiring**
-  - [ ] Google OR-Tools CP-SAT model over 7-day horizon with 15-minute resolution
-  - [ ] Hard constraints: zero overlap, non-past, protected leisure, device match (`PHONE_COMMUTE` vs `LAPTOP_DEEP`)
-  - [ ] Soft constraints with slack variables: full schedule, floor downgrade, deferral (`sum == 1`)
-  - [ ] Schedule Diff & Constraint Explanation generator (Git-style reason breakdown)
-  - [ ] Slack-Based Overload Tradeoff Cards generator (capacity negotiation options)
-  - [ ] `POST /api/v1/solver/solve` and `POST /api/v1/ai/replan` in FastAPI
-  - [ ] Spring Boot Two-Phase Replan workflow (`PROPOSED` -> `CONFIRMED`)
+- [x] **Phase 2B: OR-Tools CP-SAT Scheduler, Schedule Diff & Spring Boot Replan Wiring**
+  - [x] Google OR-Tools CP-SAT model over 7-day horizon with 15-minute resolution
+  - [x] Hard constraints: zero overlap, non-past, protected leisure, restorative sleep protection (23:00-07:00)
+  - [x] Soft constraints with slack variables: full schedule, floor downgrade, deferral (`sum == 1`)
+  - [x] Schedule Diff & Constraint Explanation generator (Git-style reason breakdown)
+  - [x] Slack-Based Overload Tradeoff Cards generator (capacity negotiation options)
+  - [x] `POST /api/v1/solver/solve` and `POST /api/v1/ai/replan` in FastAPI (23/23 tests passed in `/ai-service`)
+  - [x] Spring Boot Two-Phase Replan workflow (`PROPOSED` -> `CONFIRMED`/`REJECTED`) (18/18 tests passed in `/backend`)
 
 - [ ] **Phase 3A: Phone-First Android App, Part 1 (Offline Snapshot, Exact Alarms, BootReceiver & Today Screen)**
   - [ ] Kotlin + Jetpack Compose Material 3 + Hilt + Retrofit + Room project

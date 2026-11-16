@@ -109,9 +109,9 @@ public class CurriculumSeederService {
         seedWeeklyBlocks(List.of(cardKv, cardCpSat, cardStack, cardSecurity));
 
         // 7. Seed Topic Duration Stats & Burnout Telemetry
-        durationStatRepository.save(new TopicDurationStatEntity(UUID.randomUUID(), DEMO_USER_ID, "ai_eng", 1.15, 6));
-        durationStatRepository.save(new TopicDurationStatEntity(UUID.randomUUID(), DEMO_USER_ID, "dsa_java", 0.90, 8));
-        durationStatRepository.save(new TopicDurationStatEntity(UUID.randomUUID(), DEMO_USER_ID, "spring_craft", 1.05, 5));
+        upsertDurationStat("ai_eng", 1.15, 6);
+        upsertDurationStat("dsa_java", 0.90, 8);
+        upsertDurationStat("spring_craft", 1.05, 5);
 
         BurnoutTelemetryEntity telemetry = burnoutRepository.findByUserId(DEMO_USER_ID)
                 .orElseGet(() -> new BurnoutTelemetryEntity(UUID.randomUUID(), DEMO_USER_ID));
@@ -120,6 +120,15 @@ public class CurriculumSeederService {
         telemetry.setRecoveryModeActive(false);
         telemetry.setConsecutiveSkippedDays(0);
         burnoutRepository.save(telemetry);
+    }
+
+    private void upsertDurationStat(String topicTag, double multiplier, int samples) {
+        TopicDurationStatEntity stat = durationStatRepository.findByUserIdAndTopicTag(DEMO_USER_ID, topicTag)
+                .orElseGet(() -> new TopicDurationStatEntity(UUID.randomUUID(), DEMO_USER_ID, topicTag, multiplier, samples));
+        stat.setEmaMultiplier(multiplier);
+        stat.setSampleCount(samples);
+        stat.setUpdatedAt(ZonedDateTime.now());
+        durationStatRepository.save(stat);
     }
 
     private TopicCardEntity createCard(UUID goalId, String title, String summary, String tag, String floor, String rubric) {

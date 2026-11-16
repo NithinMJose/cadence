@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 public interface TopicDurationStatRepository extends JpaRepository<TopicDurationStatEntity, UUID> {
     Optional<TopicDurationStatEntity> findByUserIdAndTopicTag(UUID userId, String topicTag);
+    java.util.List<TopicDurationStatEntity> findByUserId(UUID userId);
 }
