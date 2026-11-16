@@ -5,15 +5,12 @@ import com.cadence.repository.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
+import java.time.*;
 import java.util.List;
 import java.util.UUID;
 
 /**
- * Seeds a 30-day curriculum with Applied AI Engineering, DSA, and Spring/Kotlin craft.
+ * Seeds everyday lifestyle & learning schedule: wake up, gym, breakfast, games, work, lunch, upskill, sleep.
  */
 @Service
 public class CurriculumSeederService {
@@ -51,75 +48,107 @@ public class CurriculumSeederService {
 
     @Transactional
     public void seedCurriculum() {
-        // 1. Create or update Demo User
-        UserEntity user = userRepository.findById(DEMO_USER_ID).orElseGet(() -> {
+        userRepository.findById(DEMO_USER_ID).orElseGet(() -> {
             UserEntity u = new UserEntity(DEMO_USER_ID, "developer@cadence.internal", zoneId.getId());
-            u.setChronotypePeakHoursJson("[\"08:00-10:00\", \"19:00-21:30\"]");
+            u.setChronotypePeakHoursJson("[\"09:00-11:00\", \"19:00-21:00\"]");
             u.setProtectedLeisureJson("[\"13:00-14:00\", \"22:30-23:59\"]");
             return userRepository.save(u);
         });
 
-        // 2. Clear existing demo data for clean idempotent seeding
         blockRepository.deleteAll(blockRepository.findByUserId(DEMO_USER_ID));
         cardRepository.deleteAll(cardRepository.findByUserId(DEMO_USER_ID));
         goalRepository.deleteAll(goalRepository.findByUserId(DEMO_USER_ID));
         constraintRepository.deleteAll(constraintRepository.findByUserId(DEMO_USER_ID));
 
-        // 3. Seed Learning Goals
-        LearningGoalEntity goalAi = goalRepository.save(new LearningGoalEntity(
-                UUID.randomUUID(), DEMO_USER_ID, "Applied AI Engineering",
-                "Master local LLM serving, OR-Tools CP-SAT constraint solvers, and prompt compilation."
-        ));
-        LearningGoalEntity goalDsa = goalRepository.save(new LearningGoalEntity(
-                UUID.randomUUID(), DEMO_USER_ID, "Pattern-Based DSA (Java)",
-                "Master monotonic stacks, sliding window patterns, and graph traversals in Java."
-        ));
-        LearningGoalEntity goalSpring = goalRepository.save(new LearningGoalEntity(
-                UUID.randomUUID(), DEMO_USER_ID, "Spring Boot & Kotlin Craft",
-                "Production-grade distributed systems, stateless token filters, and reactive pipelines."
+        LearningGoalEntity goal = goalRepository.save(new LearningGoalEntity(
+                UUID.randomUUID(), DEMO_USER_ID, "Daily Growth & Engineering Craft", "Balanced daily rhythm combining work, fitness, gaming, and upskilling."
         ));
 
-        // 4. Seed Topic Cards
-        TopicCardEntity cardKv = createCard(goalAi.getId(), "Transformer Attention & KV Caching",
-                "Understanding Key-Value caching dynamics, memory overhead per token, and PagedAttention in vLLM.",
-                "ai_eng", "Recall the formula for FP16 KV cache memory size given context length, layers, and hidden dim.",
-                "{\"checkpoints\": [\"KV pairs stored per layer\", \"FP16 = 2 bytes per element\", \"Linear growth with sequence length\", \"Avoids redundant recomputation\"]}");
+        TopicCardEntity cardCache = createCard(goal.getId(), "System Design: Distributed Caching",
+                "Understanding Redis in-memory caching, TTL expiration, and cache-aside pattern.", "upskill",
+                "What is cache-aside pattern and how does it prevent stale data?",
+                "{\"checkpoints\": [\"Read cache first\", \"On miss, query database\", \"Write result to cache with TTL\", \"Reduces database latency\"]}");
 
-        TopicCardEntity cardCpSat = createCard(goalAi.getId(), "OR-Tools CP-SAT Interval Scheduling",
-                "Formulating non-overlapping time windows using CpModel.newIntervalVar and AddNoOverlap.",
-                "ai_eng", "What are the 3 mandatory parameters when defining an interval variable in OR-Tools?",
-                "{\"checkpoints\": [\"Start variable\", \"Size / duration variable\", \"End variable\", \"Enforces start + size == end\"]}");
+        TopicCardEntity cardPrompt = createCard(goal.getId(), "AI Basics: Context Window & Tokens",
+                "How LLM context windows work, token limits, and prompt optimization.", "upskill",
+                "What happens when a prompt exceeds the context window?",
+                "{\"checkpoints\": [\"Context window is fixed maximum tokens\", \"Tokens represent ~4 characters\", \"Truncation drops earlier messages\", \"Requires compaction or sliding window\"]}");
 
-        TopicCardEntity cardStack = createCard(goalDsa.getId(), "Monotonic Stack for Next Greater Element",
-                "Maintaining an invariant of decreasing elements to find the next greater item in O(N).",
-                "dsa_java", "Trace 3 numbers [2, 1, 5] through a decreasing monotonic stack and state when pops occur.",
-                "{\"checkpoints\": [\"Push indices/values while current <= top\", \"Pop when current > top\", \"Resolved elements get current as next greater\", \"Linear O(N) runtime\"]}");
+        TopicCardEntity cardSolid = createCard(goal.getId(), "Clean Code: SOLID Principles",
+                "Applying Single Responsibility, Open-Closed, and Dependency Inversion in daily coding.", "upskill",
+                "Explain the Single Responsibility Principle with one clear example.",
+                "{\"checkpoints\": [\"One reason to change per class\", \"Separates business logic from I/O\", \"Improves unit testability\", \"Reduces merge conflicts\"]}");
 
-        TopicCardEntity cardSecurity = createCard(goalSpring.getId(), "Stateless Security Filters & ThreadLocal MDC",
-                "OncePerRequestFilter enforcing API keys with RFC 7807 problem details and MDC trace propagation.",
-                "spring_craft", "Where must MDC.remove('traceId') be invoked in a servlet filter?",
-                "{\"checkpoints\": [\"In the finally block of doFilterInternal\", \"Prevents ThreadLocal leakage to worker pool\", \"Ensures clean logging context for subsequent requests\", \"Propagates X-Trace-Id header in response\"]}");
-
-        // 5. Seed Constraints
-        createConstraint("HARD_BLOCK", "10:00", "18:00", "Work / Office Hours", true);
         createConstraint("LEISURE", "13:00", "14:00", "Protected Lunch & Walk", true);
-        createConstraint("LEISURE", "22:30", "23:59", "Protected Sleep & Wind-down", true);
+        createConstraint("LEISURE", "22:30", "23:59", "Protected Sleep & Rest", true);
 
-        // 6. Seed Current Week Time Blocks
-        seedWeeklyBlocks(List.of(cardKv, cardCpSat, cardStack, cardSecurity));
+        seedDailyRoutine(List.of(cardCache, cardPrompt, cardSolid));
 
-        // 7. Seed Topic Duration Stats & Burnout Telemetry
-        upsertDurationStat("ai_eng", 1.15, 6);
-        upsertDurationStat("dsa_java", 0.90, 8);
-        upsertDurationStat("spring_craft", 1.05, 5);
+        upsertDurationStat("upskill", 1.05, 5);
+        upsertDurationStat("work", 1.0, 10);
 
         BurnoutTelemetryEntity telemetry = burnoutRepository.findByUserId(DEMO_USER_ID)
                 .orElseGet(() -> new BurnoutTelemetryEntity(UUID.randomUUID(), DEMO_USER_ID));
-        telemetry.setRollingCompletionRate(0.92);
-        telemetry.setFlexCreditsMinutes(45);
+        telemetry.setRollingCompletionRate(0.95);
+        telemetry.setFlexCreditsMinutes(60);
         telemetry.setRecoveryModeActive(false);
         telemetry.setConsecutiveSkippedDays(0);
         burnoutRepository.save(telemetry);
+    }
+
+    private void seedDailyRoutine(List<TopicCardEntity> cards) {
+        LocalDate today = LocalDate.now(zoneId);
+        ZonedDateTime now = ZonedDateTime.now(zoneId);
+
+        record Template(String title, String tag, int sh, int sm, int eh, int em, DeviceType dev, boolean isFloor, String brief) {}
+        List<Template> templates = List.of(
+                new Template("🌅 Wake Up & Morning Routine", "routine", 7, 0, 7, 30, DeviceType.PHONE_COMMUTE, false, "[\"Hydrate with water\", \"Quick stretch\", \"Review today's plan\"]"),
+                new Template("🏋️ Gym & Workout", "fitness", 7, 30, 8, 30, DeviceType.PHONE_COMMUTE, false, "[\"Dynamic warm-up\", \"Focus on form\", \"Post-workout cooldown\"]"),
+                new Template("🍳 Breakfast & Morning News", "wellness", 8, 30, 9, 15, DeviceType.PHONE_COMMUTE, false, "[\"High-protein breakfast\", \"Check morning headlines\"]"),
+                new Template("🎮 Morning Gaming / Free Time", "gaming", 9, 15, 10, 0, DeviceType.LAPTOP_DEEP, false, "[\"Casual game session\", \"Disconnect before focus work\"]"),
+                new Template("💼 Work: Core Project Focus", "work", 10, 0, 13, 0, DeviceType.LAPTOP_DEEP, false, "[\"High-priority tickets\", \"Architecture & deep coding\", \"Zero distraction mode\"]"),
+                new Template("🥗 Lunch Break & Quick Walk", "wellness", 13, 0, 14, 0, DeviceType.PHONE_COMMUTE, false, "[\"Healthy lunch\", \"Outdoor walk\", \"Step away from screens\"]"),
+                new Template("💻 Work: Collaboration & Delivery", "work", 14, 0, 18, 0, DeviceType.LAPTOP_DEEP, false, "[\"Team syncs & PR reviews\", \"Feature implementation\", \"Wrap up daily commitments\"]"),
+                new Template("🎮 Evening Gaming & Chill", "gaming", 18, 0, 19, 30, DeviceType.LAPTOP_DEEP, false, "[\"Multiplayer with friends\", \"Unwind from workday\"]"),
+                new Template("📚 Upskill: Tech & AI Concepts", "upskill", 19, 30, 20, 30, DeviceType.LAPTOP_DEEP, true, "[\"1. Key concept review\", \"2. Hands-on coding exercise\", \"3. Floor available: 3-min quiz\"]"),
+                new Template("🍕 Dinner & Evening Free Time", "leisure", 20, 30, 22, 30, DeviceType.PHONE_COMMUTE, false, "[\"Dinner with family/friends\", \"Casual reading & relaxation\"]"),
+                new Template("😴 Sleep & Restorative Rest", "sleep", 22, 30, 23, 59, DeviceType.PHONE_COMMUTE, false, "[\"Phone on silent\", \"Dark room, restorative rest\"]")
+        );
+
+        for (int day = 0; day < 7; day++) {
+            LocalDate date = today.plusDays(day);
+            for (Template t : templates) {
+                ZonedDateTime start = ZonedDateTime.of(date, LocalTime.of(t.sh, t.sm), zoneId);
+                ZonedDateTime end = ZonedDateTime.of(date, LocalTime.of(t.eh, t.em), zoneId);
+                int duration = (int) Duration.between(start, end).toMinutes();
+
+                TimeBlockEntity b = new TimeBlockEntity();
+                b.setId(UUID.randomUUID());
+                b.setUserId(DEMO_USER_ID);
+                b.setTitle(t.title);
+                b.setTopicTag(t.tag);
+                b.setStartTime(start);
+                b.setEndTime(end);
+                b.setDeviceType(t.dev);
+                b.setPlannedDurationMin(duration);
+                b.setEmergencyFloor(false);
+                b.setWarmupBriefJson(t.brief);
+                b.setCreatedAt(now);
+                b.setUpdatedAt(now);
+
+                if ("upskill".equals(t.tag)) {
+                    b.setCardId(cards.get(day % cards.size()).getId());
+                }
+
+                if (day == 0 && end.isBefore(now)) {
+                    b.setStatus(BlockStatus.COMPLETED);
+                    b.setActualDurationMin(duration);
+                } else {
+                    b.setStatus(BlockStatus.SCHEDULED);
+                }
+                blockRepository.save(b);
+            }
+        }
     }
 
     private void upsertDurationStat(String topicTag, double multiplier, int samples) {
@@ -147,7 +176,7 @@ public class CurriculumSeederService {
         c.setLapses(0);
         c.setState(CardState.REVIEW);
         c.setLastReviewAt(ZonedDateTime.now(zoneId).minusDays(1));
-        c.setNextReviewAt(ZonedDateTime.now(zoneId).minusHours(2)); // Due now
+        c.setNextReviewAt(ZonedDateTime.now(zoneId).minusHours(1));
         c.setEmergencyFloorPrompt(floor);
         c.setRubricJson(rubric);
         c.setCreatedAt(ZonedDateTime.now(zoneId));
@@ -162,55 +191,10 @@ public class CurriculumSeederService {
         sc.setConstraintType(type);
         sc.setWindowStart(start);
         sc.setWindowEnd(end);
-        sc.setDaysOfWeekJson("[\"MONDAY\", \"TUESDAY\", \"WEDNESDAY\", \"THURSDAY\", \"FRIDAY\"]");
+        sc.setDaysOfWeekJson("[\"MONDAY\", \"TUESDAY\", \"WEDNESDAY\", \"THURSDAY\", \"FRIDAY\", \"SATURDAY\", \"SUNDAY\"]");
         sc.setReason(reason);
         sc.setHardBlock(hard);
         sc.setCreatedAt(ZonedDateTime.now(zoneId));
         constraintRepository.save(sc);
-    }
-
-    private void seedWeeklyBlocks(List<TopicCardEntity> cards) {
-        LocalDate today = LocalDate.now(zoneId);
-        for (int i = 0; i < 7; i++) {
-            LocalDate date = today.plusDays(i);
-            TopicCardEntity card = cards.get(i % cards.size());
-
-            // Commute Block (Phone, 15 min)
-            TimeBlockEntity commute = new TimeBlockEntity();
-            commute.setId(UUID.randomUUID());
-            commute.setUserId(DEMO_USER_ID);
-            commute.setCardId(card.getId());
-            commute.setTitle("Commute Flashcard Sprint: " + card.getTitle());
-            commute.setTopicTag(card.getTopicTag());
-            commute.setStartTime(ZonedDateTime.of(date, LocalTime.of(8, 45), zoneId));
-            commute.setEndTime(ZonedDateTime.of(date, LocalTime.of(9, 0), zoneId));
-            commute.setStatus(i == 0 ? BlockStatus.COMPLETED : BlockStatus.SCHEDULED);
-            commute.setDeviceType(DeviceType.PHONE_COMMUTE);
-            commute.setPlannedDurationMin(15);
-            commute.setActualDurationMin(i == 0 ? 12 : null);
-            commute.setEmergencyFloor(false);
-            commute.setWarmupBriefJson("[\"Review previous lapse concepts\", \"Focus on core definitions\", \"Test self before checking answers\"]");
-            commute.setCreatedAt(ZonedDateTime.now(zoneId));
-            commute.setUpdatedAt(ZonedDateTime.now(zoneId));
-            blockRepository.save(commute);
-
-            // Evening Deep Block (Laptop, 60 min)
-            TimeBlockEntity deep = new TimeBlockEntity();
-            deep.setId(UUID.randomUUID());
-            deep.setUserId(DEMO_USER_ID);
-            deep.setCardId(card.getId());
-            deep.setTitle("Deep Practice: " + card.getTitle());
-            deep.setTopicTag(card.getTopicTag());
-            deep.setStartTime(ZonedDateTime.of(date, LocalTime.of(19, 30), zoneId));
-            deep.setEndTime(ZonedDateTime.of(date, LocalTime.of(20, 30), zoneId));
-            deep.setStatus(BlockStatus.SCHEDULED);
-            deep.setDeviceType(DeviceType.LAPTOP_DEEP);
-            deep.setPlannedDurationMin(60);
-            deep.setEmergencyFloor(false);
-            deep.setWarmupBriefJson("[\"1. Key concept: " + card.getTitle() + "\", \"2. Focus: Implementation & Edge cases\", \"3. Floor available if energy drops: 3-min quiz\"]");
-            deep.setCreatedAt(ZonedDateTime.now(zoneId));
-            deep.setUpdatedAt(ZonedDateTime.now(zoneId));
-            blockRepository.save(deep);
-        }
     }
 }
